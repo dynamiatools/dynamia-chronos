@@ -1,0 +1,28 @@
+dynamia:
+  app:
+    name: Dynamia Chronos
+    author: @project.organization.name@
+    version: @project.version@
+    template: Dynamical
+    default-skin: skin-dark
+    base-package: tools.dynamia
+
+
+
+spring:
+  application:
+    name: Dynamia Chronos
+    version: @project.version@
+
+  datasource:
+    url: ${DATABASE_URL:jdbc:mysql://localhost:3306/dynamiachronos}
+    username: ${DATABASE_USERNAME:root}
+    password: ${DATABASE_PASSWORD:1234}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
