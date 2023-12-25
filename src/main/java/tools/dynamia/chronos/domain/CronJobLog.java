@@ -5,7 +5,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
@@ -37,11 +36,13 @@ public class CronJobLog {
     private boolean fail;
 
     private String status;
-    @Lob
+
+    @Column(name = "response", columnDefinition = "json")
     private String response;
 
     @Column(length = 1000)
     private String details;
+    private String serverHost;
 
     public CronJobLog() {
         this.startDate = LocalDateTime.now();
@@ -173,5 +174,13 @@ public class CronJobLog {
         htb.addRowAndData("Failed: ", isFail());
         htb.addRowAndData("Duration: ", duration.toMillis() + "ms");
         return htb.render();
+    }
+
+    public String getServerHost() {
+        return serverHost;
+    }
+
+    public void setServerHost(String serverHost) {
+        this.serverHost = serverHost;
     }
 }

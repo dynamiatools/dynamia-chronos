@@ -4,7 +4,8 @@ import org.springframework.scheduling.annotation.Async;
 import tools.dynamia.chronos.domain.CronJob;
 import tools.dynamia.chronos.domain.CronJobLog;
 import tools.dynamia.chronos.domain.Notificator;
-import tools.dynamia.commons.StringPojoParser;
+import tools.dynamia.chronos.domain.Project;
+import tools.dynamia.chronos.services.ProjectService;
 import tools.dynamia.commons.logger.LoggingService;
 import tools.dynamia.commons.logger.SLF4JLoggingService;
 import tools.dynamia.integration.sterotypes.Provider;
@@ -13,10 +14,6 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.List;
-import java.util.Map;
-
-import static tools.dynamia.commons.MapBuilder.put;
 
 /**
  * Slack notification sender. Its use {@link Notificator} contact as webhook url
@@ -25,6 +22,11 @@ import static tools.dynamia.commons.MapBuilder.put;
 public class SlackNotificationSender implements NotificationSender {
 
     private LoggingService logger = new SLF4JLoggingService(SlackNotificationSender.class);
+    private final ProjectService projectService;
+
+    public SlackNotificationSender(ProjectService projectService) {
+        this.projectService = projectService;
+    }
 
     @Override
     public String getId() {
@@ -39,32 +41,65 @@ public class SlackNotificationSender implements NotificationSender {
     @Override
     @Async
     public void send(CronJob cronJob, CronJobLog log, Notificator notificator) {
+        Project project = projectService.getById(cronJob.getProject().getId());
+        String title = project.getName() + " - Cron Job Failed: " + cronJob.getName();
+        StringBuilder content = new StringBuilder();
+
+        content.append("*Duration:* ").append(log.getDuration().toMillis()).append("ms\n");
+        content.append("*Status:* ").append(log.getStatus()).append("\n");
+        if (log.getDetails() != null) {
+            content.append("*Details:* ").append(log.getDetails()).append("\n");
+        }
+        content.append("*URL:* ").append(log.getServerHost()).append("\n");
+
         if (cronJob.isNotifyFails() && log.isFail()) {
-            sendMessage(notificator.getContact(), "JOB [" + cronJob.getId() + " - " + cronJob.getName() + "] fails with status " + log.getStatus(), log.toHtml());
+            sendMessage(notificator.getContact(), title, content.toString());
         }
 
-        if (cronJob.isNotifyExecutions() && log.isExecuted()) {
-            sendMessage(notificator.getContact(), "JOB [" + cronJob.getId() + " - " + cronJob.getName() + "] executed at " + log.getStartDate(), log.toHtml());
-        }
     }
 
     private void sendMessage(String webhookURL, String subject, String content) {
         try {
-            Map<String, Object> message = put(
-                    "text", subject,
-                    "blocks", List.of(
-                            put("type", "section",
-                                    "text", put("type", "html"
-                                            , "text", content))
-                    ));
 
-            String json = StringPojoParser.convertMapToJson(message);
+            String message = """
+                    {
+                    	"blocks": [
+                    		{
+                    			"type": "rich_text",
+                    			"elements": [
+                    				{
+                    					"type": "rich_text_section",
+                    					"elements": [
+                    						{
+                    							"type": "emoji",
+                    							"name": "red_circle",
+                    							"unicode": "1f534"
+                    						},
+                    						{
+                    							"type": "text",
+                    							"text": " %s"
+                    						}
+                    					]
+                    				}
+                    			]
+                    		},
+                    		{
+                    			"type": "section",
+                    			"text": {
+                    				"type": "mrkdwn",
+                    				"text": "%s"
+                    			}
+                    		}
+                    	]
+                    }
+                    """.formatted(subject, content);
 
-            logger.info("Sending notification to:  " + webhookURL + "/n" + json);
+
+            logger.info("Sending notification to:  " + webhookURL);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(webhookURL))
-                    .POST(HttpRequest.BodyPublishers.ofString(json))
+                    .POST(HttpRequest.BodyPublishers.ofString(message))
                     .header("Content-type", "application/json")
                     .build();
 

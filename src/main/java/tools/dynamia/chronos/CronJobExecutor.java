@@ -36,6 +36,7 @@ public class CronJobExecutor {
         CronJobLog log = new CronJobLog(cronJob);
 
         var parsedServerPath = parse(cronJob.getServerHost());
+        log.setServerHost(parsedServerPath);
         if (parsedServerPath.startsWith("http")) {
             executeHttp(log, parsedServerPath);
         } else {

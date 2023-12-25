@@ -13,6 +13,8 @@ import java.util.List;
  */
 public interface ProjectService {
 
+    Project getById(Long id);
+
     void clearCache(Project project);
 
     List<Variable> getVariables(Project project);
@@ -25,4 +27,6 @@ public interface ProjectService {
     List<Notificator> getNotificators(Project project);
 
     NotificationSender findNotificationSender(String id);
+
+
 }
