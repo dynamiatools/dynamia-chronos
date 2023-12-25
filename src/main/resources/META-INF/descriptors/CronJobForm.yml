@@ -1,0 +1,29 @@
+view: form
+beanClass: tools.dynamia.chronos.domain.CronJob
+autofields: false
+
+fields:
+  name:
+    params:
+      span: 4
+  description:
+    params:
+      multiline: true
+      height: 80px
+      span: 4
+  serverHost:
+  serverPort:
+  serverAuthorization:
+  serverTimeout:
+  cronExpression:
+    params:
+      span: 3
+  contentType:
+
+  active:
+  notifyFails:
+  notifyExecutions:
+
+
+layout:
+  columns: 4

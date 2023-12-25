@@ -4,8 +4,11 @@ dynamia:
     author: @project.organization.name@
     version: @project.version@
     template: Dynamical
-    default-skin: skin-dark
+    default-skin: black
     base-package: tools.dynamia
+    default-logo: /static/chronos-logo.png
+    default-icon: /static/chronos-icon.png
+
 
 
 

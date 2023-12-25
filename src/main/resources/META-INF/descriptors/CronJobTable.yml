@@ -1,0 +1,34 @@
+view: table
+beanClass: tools.dynamia.chronos.domain.CronJob
+autofields: false
+
+fields:
+  name:
+    params:
+      header:
+        width: 200px
+  serverHost:
+    component: html
+    params:
+      converter: converters.Mustache
+      style: 'font-family: courier'
+      header:
+        width: 300px
+  cronExpression:
+    params:
+      style: 'font-family: courier'
+  createdAt:
+    params:
+      converter: converters.LocalDateTime
+  lastExecution:
+    params:
+      converter: converters.LocalDateTime
+  executionsCount:
+    label: Executions
+  nextExecution:
+  status:
+  active:
+
+
+
+

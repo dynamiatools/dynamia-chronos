@@ -1,0 +1,24 @@
+view: form
+beanClass: tools.dynamia.chronos.domain.Project
+autofields: false
+
+fields:
+  name:
+  description:
+    params:
+      multiline: true
+      height: 80px
+
+  variables:
+    component: crudview
+
+  cronjobs:
+    label: Cron Jobs
+    component: crudview
+
+  notificators:
+    component: crudview
+
+
+layout:
+  columns: 1

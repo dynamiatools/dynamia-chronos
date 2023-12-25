@@ -1,0 +1,14 @@
+view: form
+beanClass: tools.dynamia.chronos.domain.Variable
+autofields: false
+
+fields:
+  name:
+  value:
+    params:
+      height: 80px
+      multiline: true
+  secret:
+
+layout:
+  columns: 1

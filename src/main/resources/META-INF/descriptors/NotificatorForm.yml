@@ -1,0 +1,11 @@
+view: form
+beanClass: tools.dynamia.chronos.domain.Notificator
+autofields: false
+
+fields:
+  sender:
+    component: providerpickerbox
+    params:
+      className: tools.dynamia.chronos.notificators.NotificationSender
+  contact:
+  active:

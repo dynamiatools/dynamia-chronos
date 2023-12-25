@@ -1,0 +1,8 @@
+view: table
+beanClass: tools.dynamia.chronos.domain.Notificator
+autofields: false
+
+fields:
+  sender:
+  contact:
+  active:

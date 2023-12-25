@@ -1,0 +1,7 @@
+view: table
+beanClass: tools.dynamia.chronos.domain.Project
+autofields: false
+
+fields:
+  name:
+  description:

@@ -1,0 +1,44 @@
+view: table
+beanClass: tools.dynamia.chronos.domain.CronJobLog
+autofields: false
+
+fields:
+  startDate:
+    params:
+      converter: converters.LocalDateTime
+      header:
+        width: 120px;
+
+  duration:
+    params:
+      converter: converters.Millis
+      header:
+        width: 80px;
+  status:
+    params:
+      header:
+        width: 150px;
+  details:
+    params:
+      header:
+        width: 200px;
+  response:
+    component: textbox
+    params:
+      multiline: true
+      height: 100px
+      width: 99%
+      readonly: true
+  executed:
+    params:
+      header:
+        width: 60px;
+        align: center
+  fail:
+    params:
+      header:
+        width: 60px;
+        align: center
+
+params:
+  sizedByContent: false
