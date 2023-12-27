@@ -1,23 +1,36 @@
 <zk>
-    <borderlayout viewModel="@id('vm') @init('tools.dynamia.chronos.vm.DashboardViewModel')">
+    <style>
+        .dashboard .z-center-header,
+        .dashboard .z-west-header{
+            background: #0c5460;
+            color: whitesmoke;
+        }
+    </style>
+
+    <borderlayout viewModel="@id('vm') @init('tools.dynamia.chronos.vm.DashboardViewModel')" sclass="dashboard">
 
         <north>
-            <hlayout>
-                <infobox text="Projects" number="@load(vm.projectsCount) "
-                         icon="fa fa-project-diagram" background="bg-orange color-white" sclass="info-box-sm"/>
+            <div sclass="row">
+                <div sclass="col-md-3">
+                    <infobox text="Projects" number="@load(vm.projectsCount) "
+                             icon="fa fa-project-diagram" background="bg-orange color-white" sclass="info-box-sm"/>
+                </div>
 
 
-                <infobox text="Active Jobs" number="@load(vm.activeCronJobsCount) "
-                         icon="fa fa-tasks" background="bg-blue" sclass="info-box-sm"/>
+                <div sclass="col-md-3">
+                    <infobox text="Active Jobs" number="@load(vm.activeCronJobsCount) "
+                             icon="fa fa-tasks" background="bg-blue" sclass="info-box-sm"/>
+                </div>
 
-
-                <infobox text="Ok Jobs" number="@load(vm.okCronJobsCount) "
-                         icon="fa fa-bomb" background="bg-success" sclass="info-box-sm"/>
-
-                <infobox text="Failing Jobs" number="@load(vm.failingCronJobsCount) "
-                         icon="fa fa-bomb" background="bg-danger" sclass="info-box-sm"/>
-
-            </hlayout>
+                <div sclass="col-md-3">
+                    <infobox text="Ok Jobs" number="@load(vm.okCronJobsCount) "
+                             icon="fa fa-check" background="bg-success" sclass="info-box-sm"/>
+                </div>
+                <div sclass="col-md-3">
+                    <infobox text="Failing Jobs" number="@load(vm.failingCronJobsCount) "
+                             icon="fa fa-bomb" background="bg-danger" sclass="info-box-sm"/>
+                </div>
+            </div>
 
         </north>
 
@@ -26,7 +39,7 @@
                   onSelect="@command('nodeSelected')" selectedItem="@bind(vm.selectedNode)"/>
         </west>
 
-        <center id="content-area">
+        <center id="content-area" title="Details">
 
         </center>
 

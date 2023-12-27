@@ -1,6 +1,6 @@
 dynamia:
   app:
-    name: Dynamia Chronos (Beta)
+    name: Dynamia Chronos (alpha)
     author: @project.organization.name@
     version: @project.version@
     template: Dynamical
