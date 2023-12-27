@@ -1,9 +1,13 @@
+.badge{
+    margin-left: 3px;
+}
+
 .badge-failing{
     background-color: #D50000;
     color: white;
 }
 
 .badge-ok{
-    background-color: #1c7430;
+    background-color: #00C851;
     color: white;
 }

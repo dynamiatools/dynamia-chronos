@@ -6,11 +6,12 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
+import tools.dynamia.chronos.ProjectAware;
 import tools.dynamia.domain.jpa.SimpleEntity;
 
 @Entity
 @Table(name = "crn_projects_notificators")
-public class Notificator extends SimpleEntity {
+public class Notificator extends SimpleEntity  implements ProjectAware {
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Project project;

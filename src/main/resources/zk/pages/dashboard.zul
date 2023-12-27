@@ -4,14 +4,17 @@
         <north>
             <hlayout>
                 <infobox text="Projects" number="@load(vm.projectsCount) "
-                         icon="fa fa-project-diagram" background="bg-blue" sclass="info-box-sm"/>
+                         icon="fa fa-project-diagram" background="bg-orange color-white" sclass="info-box-sm"/>
 
 
-                <infobox text="Cron Jobs" number="@load(vm.activeCronJobsCount) "
-                         icon="fa fa-tasks" background="bg-success" sclass="info-box-sm"/>
+                <infobox text="Active Jobs" number="@load(vm.activeCronJobsCount) "
+                         icon="fa fa-tasks" background="bg-blue" sclass="info-box-sm"/>
 
 
-                <infobox text="Failing" number="@load(vm.failingCronJobsCount) "
+                <infobox text="Ok Jobs" number="@load(vm.okCronJobsCount) "
+                         icon="fa fa-bomb" background="bg-success" sclass="info-box-sm"/>
+
+                <infobox text="Failing Jobs" number="@load(vm.failingCronJobsCount) "
                          icon="fa fa-bomb" background="bg-danger" sclass="info-box-sm"/>
 
             </hlayout>

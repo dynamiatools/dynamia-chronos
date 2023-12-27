@@ -18,7 +18,8 @@ import java.util.List;
 @Service
 public class CronJobsServiceImpl extends AbstractService implements CronJobsService {
 
-    private static final String FAILING_STATUS = "Failing";
+
+
     private final ProjectService projectService;
 
     public CronJobsServiceImpl(ProjectService projectService) {
@@ -49,7 +50,7 @@ public class CronJobsServiceImpl extends AbstractService implements CronJobsServ
             crudService().batchUpdate(CronJob.class,
                     MapBuilder.put(
                             "lastExecution", LocalDateTime.now(),
-                            "status", log.isFail() ? FAILING_STATUS : "OK"
+                            "status", log.isFail() ? FAILING_STATUS : OK_STATUS
                     ),
                     QueryParameters.with("id", cronJob.getId()));
             crudService().create(log);
@@ -78,8 +79,8 @@ public class CronJobsServiceImpl extends AbstractService implements CronJobsServ
     }
 
     @Override
-    public long getFailingCronJobsCount() {
+    public long countCronJobsByStatus(String status) {
         return crudService().count(CronJob.class, QueryParameters.with("active", true)
-                .add("status", FAILING_STATUS));
+                .add("status", status));
     }
 }

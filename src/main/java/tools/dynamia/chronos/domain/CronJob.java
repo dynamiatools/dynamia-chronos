@@ -8,6 +8,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.scheduling.support.CronExpression;
+import tools.dynamia.chronos.ProjectAware;
 import tools.dynamia.commons.DateTimeUtils;
 import tools.dynamia.domain.contraints.NotEmpty;
 import tools.dynamia.domain.jpa.SimpleEntity;
@@ -17,7 +18,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "crn_jobs")
-public class CronJob extends SimpleEntity {
+public class CronJob extends SimpleEntity implements ProjectAware {
     @ManyToOne(fetch = FetchType.LAZY)
     private Project project;
     @NotEmpty

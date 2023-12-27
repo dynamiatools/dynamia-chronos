@@ -5,12 +5,13 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import tools.dynamia.chronos.ProjectAware;
 import tools.dynamia.domain.contraints.NotEmpty;
 import tools.dynamia.domain.jpa.SimpleEntity;
 
 @Entity
 @Table(name = "crn_variables")
-public class Variable extends SimpleEntity {
+public class Variable extends SimpleEntity implements ProjectAware {
     @ManyToOne(fetch = FetchType.LAZY)
     private Project project;
     @NotEmpty

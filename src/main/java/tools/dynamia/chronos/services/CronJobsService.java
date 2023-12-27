@@ -10,6 +10,9 @@ import java.util.List;
  */
 public interface CronJobsService {
 
+    String FAILING_STATUS = "Failing";
+    String OK_STATUS = "OK";
+
     /**
      * Find all active cron jobs from all projects
      *
@@ -33,5 +36,5 @@ public interface CronJobsService {
 
     long getActiveCronJobsCount();
 
-    long getFailingCronJobsCount();
+    long countCronJobsByStatus(String status);
 }

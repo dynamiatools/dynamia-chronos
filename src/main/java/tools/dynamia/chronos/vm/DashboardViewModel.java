@@ -8,6 +8,7 @@ import org.zkoss.bind.annotation.Init;
 import org.zkoss.zk.ui.Component;
 import org.zkoss.zul.Center;
 import tools.dynamia.actions.FastAction;
+import tools.dynamia.chronos.ProjectAware;
 import tools.dynamia.chronos.domain.CronJob;
 import tools.dynamia.chronos.domain.CronJobLog;
 import tools.dynamia.chronos.domain.Notificator;
@@ -41,6 +42,8 @@ public class DashboardViewModel {
     private long activeCronJobsCount;
     private long failingCronJobsCount;
 
+    private long okCronJobsCount;
+
     private EntityTreeModel<? extends SimpleEntity> treeModel;
 
     private EntityTreeNode selectedNode;
@@ -54,7 +57,8 @@ public class DashboardViewModel {
         projects = projectService.findAll();
         projectsCount = projects.size();
         activeCronJobsCount = cronJobsService.getActiveCronJobsCount();
-        failingCronJobsCount = cronJobsService.getFailingCronJobsCount();
+        failingCronJobsCount = cronJobsService.countCronJobsByStatus(CronJobsService.FAILING_STATUS);
+        okCronJobsCount = cronJobsService.countCronJobsByStatus(CronJobsService.OK_STATUS);
         loadModel();
     }
 
@@ -157,7 +161,10 @@ public class DashboardViewModel {
 
 
                 viewer.addAction(new FastAction("Edit ", evt -> {
-                    CrudView.showUpdateView("Edit "+viewerValue, viewer.getBeanClass(), DomainUtils.lookupCrudService().reload(entity), () -> {
+                    CrudView.showUpdateView("Edit - " + entity, entity.getClass(), DomainUtils.lookupCrudService().reload(entity), () -> {
+                        if (entity instanceof ProjectAware pa) {
+                            projectService.clearCache(pa.getProject());
+                        }
                         init();
                         notifyChanges();
                     });
@@ -217,5 +224,9 @@ public class DashboardViewModel {
 
     public Object getViewerValue() {
         return viewerValue;
+    }
+
+    public long getOkCronJobsCount() {
+        return okCronJobsCount;
     }
 }
