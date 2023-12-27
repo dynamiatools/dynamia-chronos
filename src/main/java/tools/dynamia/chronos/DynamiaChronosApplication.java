@@ -10,6 +10,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import tools.dynamia.modules.saas.api.AccountServiceAPI;
 import tools.dynamia.modules.saas.jpa.NoOpAccountServiceAPI;
+import tools.dynamia.navigation.DefaultPageProvider;
 import tools.dynamia.viewers.ViewDescriptorFactory;
 import tools.dynamia.zk.app.EnableDynamiaTools;
 
@@ -30,7 +31,11 @@ public class DynamiaChronosApplication implements CommandLineRunner {
     @Bean
     public AccountServiceAPI accountServiceAPI() {
         return new NoOpAccountServiceAPI();
+    }
 
+    @Bean
+    public DefaultPageProvider defaultPageProvider() {
+        return () -> "main/dashboard";
     }
 
 

@@ -1,0 +1,6 @@
+<language-addon>
+    <addon-name>chronos</addon-name>
+    <language-name>xul/html</language-name>
+
+    <stylesheet href="/static/css/style.css" type="text/css"/>
+</language-addon>

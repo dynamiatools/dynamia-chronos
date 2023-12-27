@@ -42,3 +42,4 @@ fields:
 
 params:
   sizedByContent: false
+  sclass: light-table

@@ -30,6 +30,11 @@ public class EmailNotificationSender implements NotificationSender {
     }
 
     @Override
+    public String getIcon() {
+        return "fa fa-envelope";
+    }
+
+    @Override
     public void send(CronJob cronJob, CronJobLog log, Notificator notificator) {
         if (cronJob.isNotifyFails() && log.isFail()) {
             sendEmail(notificator.getContact(), "JOB [" + cronJob.getId() + " - " + cronJob.getName() + "] fails with status " + log.getStatus(), log.toHtml());

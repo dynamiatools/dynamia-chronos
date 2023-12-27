@@ -10,5 +10,7 @@ public interface NotificationSender {
 
     String getName();
 
+    String getIcon();
+
     void send(CronJob cronJob, CronJobLog log, Notificator notificator);
 }

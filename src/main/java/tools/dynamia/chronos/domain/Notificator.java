@@ -55,4 +55,9 @@ public class Notificator extends SimpleEntity {
     public void setActive(boolean active) {
         this.active = active;
     }
+
+    @Override
+    public String toString() {
+        return getSender()+" - "+getContact();
+    }
 }

@@ -18,6 +18,7 @@ import java.util.List;
 @Service
 public class CronJobsServiceImpl extends AbstractService implements CronJobsService {
 
+    private static final String FAILING_STATUS = "Failing";
     private final ProjectService projectService;
 
     public CronJobsServiceImpl(ProjectService projectService) {
@@ -27,6 +28,11 @@ public class CronJobsServiceImpl extends AbstractService implements CronJobsServ
     @Override
     public List<CronJob> getActiveCronJobs() {
         return crudService().find(CronJob.class, "active", true);
+    }
+
+    public List<CronJob> getFailingCronJobs() {
+        return crudService().find(CronJob.class, QueryParameters.with("active", true)
+                .add("status", FAILING_STATUS));
     }
 
     @Override
@@ -43,7 +49,7 @@ public class CronJobsServiceImpl extends AbstractService implements CronJobsServ
             crudService().batchUpdate(CronJob.class,
                     MapBuilder.put(
                             "lastExecution", LocalDateTime.now(),
-                            "status", log.isFail() ? "Failing" : "OK"
+                            "status", log.isFail() ? FAILING_STATUS : "OK"
                     ),
                     QueryParameters.with("id", cronJob.getId()));
             crudService().create(log);
@@ -64,5 +70,16 @@ public class CronJobsServiceImpl extends AbstractService implements CronJobsServ
         return crudService().find(CronJobLog.class, QueryParameters.with("cronJob", cronJob)
                 .orderBy("id", false)
                 .setMaxResults(100));
+    }
+
+    @Override
+    public long getActiveCronJobsCount() {
+        return crudService().count(CronJob.class, QueryParameters.with("active", true));
+    }
+
+    @Override
+    public long getFailingCronJobsCount() {
+        return crudService().count(CronJob.class, QueryParameters.with("active", true)
+                .add("status", FAILING_STATUS));
     }
 }

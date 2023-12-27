@@ -25,6 +25,13 @@ public class Project extends SimpleEntity {
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Notificator> notificators = new ArrayList<>();
 
+    public Project() {
+    }
+
+    public Project(String name) {
+        this.name = name;
+    }
+
     public String getName() {
         return name;
     }

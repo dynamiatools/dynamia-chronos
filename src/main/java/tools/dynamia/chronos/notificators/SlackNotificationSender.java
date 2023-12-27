@@ -9,6 +9,7 @@ import tools.dynamia.chronos.services.ProjectService;
 import tools.dynamia.commons.logger.LoggingService;
 import tools.dynamia.commons.logger.SLF4JLoggingService;
 import tools.dynamia.integration.sterotypes.Provider;
+import tools.dynamia.ui.MessageType;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -39,6 +40,11 @@ public class SlackNotificationSender implements NotificationSender {
     }
 
     @Override
+    public String getIcon() {
+        return "fab fa-slack";
+    }
+
+    @Override
     @Async
     public void send(CronJob cronJob, CronJobLog log, Notificator notificator) {
         Project project = projectService.getById(cronJob.getProject().getId());
@@ -52,14 +58,43 @@ public class SlackNotificationSender implements NotificationSender {
         }
         content.append("*URL:* ").append(log.getServerHost()).append("\n");
 
-        if (cronJob.isNotifyFails() && log.isFail()) {
-            sendMessage(notificator.getContact(), title, content.toString());
+
+        if (cronJob.isNotifyExecutions() && log.isExecuted()) {
+            title = project.getName() + " - Cron Job Executed: " + cronJob.getName();
+            sendMessage(notificator.getContact(), title, content.toString(), MessageType.NORMAL);
         }
+
+        if (cronJob.isNotifyFails() && log.isFail()) {
+            sendMessage(notificator.getContact(), title, content.toString(), MessageType.ERROR);
+        }
+
 
     }
 
-    private void sendMessage(String webhookURL, String subject, String content) {
+    private void sendMessage(String webhookURL, String subject, String content, MessageType messageType) {
         try {
+            String icon = "red_circle";
+            String unicode = "1f534";
+
+            switch (messageType) {
+                case ERROR -> {
+                    icon = "red_circle";
+                    unicode = "1f534";
+                }
+                case NORMAL, INFO -> {
+                    icon = "white_check_mark";
+                    unicode = "2705";
+                }
+                case WARNING, CRITICAL -> {
+                    icon = "warning";
+                    unicode = "26a0-fe0f";
+                }
+                case SPECIAL -> {
+                    icon = "smile_cat";
+                    unicode = "1f638";
+                }
+            }
+
 
             String message = """
                     {
@@ -72,8 +107,8 @@ public class SlackNotificationSender implements NotificationSender {
                     					"elements": [
                     						{
                     							"type": "emoji",
-                    							"name": "red_circle",
-                    							"unicode": "1f534"
+                    							"name": "%s",
+                    							"unicode": "%s"
                     						},
                     						{
                     							"type": "text",
@@ -92,7 +127,7 @@ public class SlackNotificationSender implements NotificationSender {
                     		}
                     	]
                     }
-                    """.formatted(subject, content);
+                    """.formatted(icon, unicode, subject, content);
 
 
             logger.info("Sending notification to:  " + webhookURL);

@@ -1,0 +1,32 @@
+<zk>
+    <borderlayout viewModel="@id('vm') @init('tools.dynamia.chronos.vm.DashboardViewModel')">
+
+        <north>
+            <hlayout>
+                <infobox text="Projects" number="@load(vm.projectsCount) "
+                         icon="fa fa-project-diagram" background="bg-blue" sclass="info-box-sm"/>
+
+
+                <infobox text="Cron Jobs" number="@load(vm.activeCronJobsCount) "
+                         icon="fa fa-tasks" background="bg-success" sclass="info-box-sm"/>
+
+
+                <infobox text="Failing" number="@load(vm.failingCronJobsCount) "
+                         icon="fa fa-bomb" background="bg-danger" sclass="info-box-sm"/>
+
+            </hlayout>
+
+        </north>
+
+        <west width="40%" title="Projects">
+            <tree model="@load(vm.treeModel)" itemRenderer="tools.dynamia.zk.crud.ui.EntityTreeItemRenderer"
+                  onSelect="@command('nodeSelected')" selectedItem="@bind(vm.selectedNode)"/>
+        </west>
+
+        <center id="content-area">
+
+        </center>
+
+
+    </borderlayout>
+</zk>

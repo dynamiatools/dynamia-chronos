@@ -1,0 +1,9 @@
+.badge-failing{
+    background-color: #D50000;
+    color: white;
+}
+
+.badge-ok{
+    background-color: #1c7430;
+    color: white;
+}

@@ -17,6 +17,8 @@ public interface CronJobsService {
      */
     List<CronJob> getActiveCronJobs();
 
+    List<CronJob> getFailingCronJobs();
+
     void execute(CronJob cronJob);
 
     CronJobLog test(CronJob cronJob);
@@ -28,4 +30,8 @@ public interface CronJobsService {
      * @return
      */
     List<CronJobLog> getLatestLogs(CronJob cronJob);
+
+    long getActiveCronJobsCount();
+
+    long getFailingCronJobsCount();
 }

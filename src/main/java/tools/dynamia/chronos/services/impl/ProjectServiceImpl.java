@@ -7,6 +7,7 @@ import tools.dynamia.chronos.domain.Variable;
 import tools.dynamia.chronos.notificators.NotificationSender;
 import tools.dynamia.chronos.services.ProjectService;
 import tools.dynamia.commons.SimpleCache;
+import tools.dynamia.domain.query.QueryParameters;
 import tools.dynamia.domain.services.AbstractService;
 import tools.dynamia.integration.Containers;
 import tools.dynamia.integration.sterotypes.Service;
@@ -45,7 +46,8 @@ public class ProjectServiceImpl extends AbstractService implements ProjectServic
 
     @Override
     public List<CronJob> getCronJobs(Project project) {
-        return crudService().find(CronJob.class, "project", project);
+        return crudService().find(CronJob.class, QueryParameters.with("active",true)
+                .add("project",project));
     }
 
     @Override
@@ -58,4 +60,8 @@ public class ProjectServiceImpl extends AbstractService implements ProjectServic
         return Containers.get().findObject(NotificationSender.class, obj -> obj.getId().equals(id));
     }
 
+    @Override
+    public List<Project> findAll() {
+        return crudService().findAll(Project.class);
+    }
 }
