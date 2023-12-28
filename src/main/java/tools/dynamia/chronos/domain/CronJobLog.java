@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
@@ -37,7 +38,7 @@ public class CronJobLog {
 
     private String status;
 
-    @Column(name = "response", columnDefinition = "json")
+    @Column(columnDefinition = "text")
     private String response;
 
     @Column(length = 1000)
