@@ -175,7 +175,7 @@ public class DashboardViewModel {
                 content.getChildren().clear();
                 content.setTitle(selectedNode.getParent().getLabel());
                 if (entity instanceof CronJob cron && cron.getId() != null) {
-                    content.setTitle("Cron Job: " + cron.getServerHost());
+                    content.setTitle("Cron Job: " + cron.getServerHost()+" - Next Execution: "+cron.getNextExecution());
                 }
                 content.appendChild(viewer);
             }
