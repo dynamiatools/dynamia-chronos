@@ -8,11 +8,13 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import tools.dynamia.app.EnableDynamiaTools;
 import tools.dynamia.modules.saas.api.AccountServiceAPI;
-import tools.dynamia.modules.saas.jpa.NoOpAccountServiceAPI;
+
+import tools.dynamia.modules.saas.api.NoOpAccountServiceAPI;
 import tools.dynamia.navigation.DefaultPageProvider;
 import tools.dynamia.viewers.ViewDescriptorFactory;
-import tools.dynamia.zk.app.EnableDynamiaTools;
+
 
 @SpringBootApplication
 @EnableDynamiaTools
