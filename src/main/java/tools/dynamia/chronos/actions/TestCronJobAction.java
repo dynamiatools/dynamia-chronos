@@ -6,7 +6,6 @@ import tools.dynamia.chronos.domain.CronJob;
 import tools.dynamia.chronos.services.CronJobsService;
 import tools.dynamia.crud.AbstractCrudAction;
 import tools.dynamia.crud.CrudActionEvent;
-import tools.dynamia.web.util.HtmlTableBuilder;
 
 @InstallAction
 public class TestCronJobAction extends AbstractCrudAction {
@@ -24,11 +23,7 @@ public class TestCronJobAction extends AbstractCrudAction {
     public void actionPerformed(CrudActionEvent evt) {
         if (evt.getData() instanceof CronJob cronJob) {
             var log = cronJobsService.test(cronJob);
-
-
-
             Messagebox.show(log.toHtml());
-
         }
     }
 }

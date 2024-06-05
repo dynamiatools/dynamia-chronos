@@ -11,3 +11,15 @@
     background-color: #00C851;
     color: white;
 }
+
+.vars{
+    font-family: "Courier New", serif;
+    font-weight: bold;
+}
+
+.vars b{
+    background: #eaeaea;
+    color: #0a53be;
+    padding: 3px;
+    border-radius: 4px;
+}

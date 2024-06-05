@@ -11,12 +11,12 @@ fields:
     component: html
     params:
       converter: converters.Mustache
-      style: 'font-family: courier'
+      sclass: vars
       header:
         width: 300px
   cronExpression:
     params:
-      style: 'font-family: courier'
+      sclass: vars
   createdAt:
     params:
       converter: converters.LocalDateTime

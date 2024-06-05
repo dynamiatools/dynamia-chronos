@@ -1,6 +1,6 @@
 dynamia:
   app:
-    name: Dynamia Chronos (alpha2)
+    name: Dynamia Chronos (beta)
     author: @project.organization.name@
     version: @project.version@
     template: Dynamical
@@ -15,7 +15,7 @@ dynamia:
 spring:
   application:
     name: Dynamia Chronos
-    version: @project.version@
+
 
   datasource:
     url: ${DATABASE_URL:jdbc:mysql://localhost:3306/dynamiachronos}
@@ -23,9 +23,11 @@ spring:
     password: ${DATABASE_PASSWORD:1234}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+
   jpa:
 
     hibernate:
       ddl-auto: update
     show-sql: true
+    database-platform: org.hibernate.dialect.MySQLDialect
 
