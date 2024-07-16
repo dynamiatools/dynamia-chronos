@@ -24,11 +24,12 @@ public class RequestCollection extends SimpleEntityUuid implements HeadersProvid
     @ManyToOne(fetch = FetchType.LAZY)
     private Project project;
     private String title;
+    @Column(columnDefinition = "longtext")
     private String description;
     @OneToMany(mappedBy = "collection", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RequestItem> requests = new ArrayList<>();
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnore
     private RequestCollection parentCollection;
 
@@ -67,7 +68,6 @@ public class RequestCollection extends SimpleEntityUuid implements HeadersProvid
     public void setRequests(List<RequestItem> requests) {
         this.requests = requests;
     }
-
 
 
     public Project getProject() {
@@ -109,4 +109,13 @@ public class RequestCollection extends SimpleEntityUuid implements HeadersProvid
     public void setCollections(List<RequestCollection> collections) {
         this.collections = collections;
     }
+
+    public List<Variable> getVariables() {
+        return variables;
+    }
+
+    public void setVariables(List<Variable> variables) {
+        this.variables = variables;
+    }
+
 }

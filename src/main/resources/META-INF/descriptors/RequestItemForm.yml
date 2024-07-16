@@ -6,17 +6,20 @@ fields:
   name:
     params:
       span: 4
+  httpMethod:
+    label: Method
+  serverHost:
+    label: URL
+    params:
+      span: 3
+  serverAuthorization:
+  serverTimeout:
+  contentType:
   description:
     params:
       multiline: true
       height: 80px
       span: 4
-  httpMethod:
-    label: Method
-  serverHost:
-  serverAuthorization:
-  serverTimeout:
-  contentType:
 
 
 layout:

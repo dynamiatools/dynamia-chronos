@@ -23,10 +23,14 @@ public class ExportProjectAction extends AbstractCrudAction {
     public void actionPerformed(CrudActionEvent evt) {
         Project project = (Project) evt.getData();
         if (project != null) {
-            project = crudService().load(Project.class, project.getId());
-            String json = project.toJson();
-            Filedownload.save(json, "application/json", StringUtils.simplifiedString(project.getName()) + "-chronos-project.json");
-            UIMessages.showMessage("Exporting..");
+
+            crudService().executeWithinTransaction(() -> {
+                Project target = crudService().load(Project.class, project.getId());
+                String json = target.toJson();
+                Filedownload.save(json, "application/json", StringUtils.simplifiedString(project.getName()) + "-chronos-project.json");
+                UIMessages.showMessage("Exporting..");
+            });
+
         } else {
             UIMessages.showMessage("Select project", MessageType.WARNING);
         }

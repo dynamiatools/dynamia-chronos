@@ -1,11 +1,9 @@
 package tools.dynamia.chronos.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import tools.dynamia.chronos.ChronosHttpRequest;
 import tools.dynamia.chronos.HeadersProvider;
 import tools.dynamia.commons.StringPojoParser;
@@ -20,7 +18,8 @@ import java.util.stream.Collectors;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RequestItem extends ChronosHttpRequest implements HeadersProvider {
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
     private RequestCollection collection;
     @Column(columnDefinition = "json")
     private String headers;
@@ -41,5 +40,13 @@ public class RequestItem extends ChronosHttpRequest implements HeadersProvider {
         if (headers != null) {
             this.headers = StringPojoParser.convertMapToJson(headers);
         }
+    }
+
+    public RequestCollection getCollection() {
+        return collection;
+    }
+
+    public void setCollection(RequestCollection collection) {
+        this.collection = collection;
     }
 }

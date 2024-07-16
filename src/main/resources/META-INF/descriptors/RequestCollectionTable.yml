@@ -4,4 +4,6 @@ autofields: false
 
 fields:
   title:
-  descripcion:
+  description:
+  id:
+

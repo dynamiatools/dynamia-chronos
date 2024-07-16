@@ -4,10 +4,13 @@ autofields: false
 
 fields:
   title:
-  descripcion:
+    params:
+      span: 2
+  description:
     params:
       height: 100px
       multiline: true
+      span: 2
   variables:
     component: crudview
   requests:
