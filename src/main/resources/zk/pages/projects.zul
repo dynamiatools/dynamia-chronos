@@ -1,0 +1,22 @@
+<zk>
+
+
+    <borderlayout viewModel="@id('vm') @init('tools.dynamia.chronos.vm.ProjectsViewModel')" sclass="dashboard">
+
+
+        <west width="30%" splittable="true" >
+            <tree model="@load(vm.treeModel)" itemRenderer="tools.dynamia.zk.crud.ui.EntityTreeItemRenderer"
+                  onSelect="@command('nodeSelected')" selectedItem="@bind(vm.selectedNode)"
+                  vflex="1"/>
+        </west>
+
+        <center>
+            <tabbox vflex="1" hflex="1" id="content-area">
+                <tabs></tabs>
+                <tabpanels></tabpanels>
+            </tabbox>
+        </center>
+
+
+    </borderlayout>
+</zk>

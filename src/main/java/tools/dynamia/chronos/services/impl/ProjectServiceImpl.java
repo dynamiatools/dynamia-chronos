@@ -1,9 +1,6 @@
 package tools.dynamia.chronos.services.impl;
 
-import tools.dynamia.chronos.domain.CronJob;
-import tools.dynamia.chronos.domain.Notificator;
-import tools.dynamia.chronos.domain.Project;
-import tools.dynamia.chronos.domain.Variable;
+import tools.dynamia.chronos.domain.*;
 import tools.dynamia.chronos.notificators.NotificationSender;
 import tools.dynamia.chronos.services.ProjectService;
 import tools.dynamia.commons.SimpleCache;
@@ -11,6 +8,7 @@ import tools.dynamia.domain.query.QueryParameters;
 import tools.dynamia.domain.services.AbstractService;
 import tools.dynamia.integration.Containers;
 import tools.dynamia.integration.sterotypes.Service;
+import tools.dynamia.modules.security.domain.User;
 
 import java.util.List;
 
@@ -46,8 +44,8 @@ public class ProjectServiceImpl extends AbstractService implements ProjectServic
 
     @Override
     public List<CronJob> getCronJobs(Project project) {
-        return crudService().find(CronJob.class, QueryParameters.with("active",true)
-                .add("project",project));
+        return crudService().find(CronJob.class, QueryParameters.with("active", true)
+                .add("project", project));
     }
 
     @Override
@@ -64,4 +62,26 @@ public class ProjectServiceImpl extends AbstractService implements ProjectServic
     public List<Project> findAll() {
         return crudService().findAll(Project.class);
     }
+
+    @Override
+    public List<Project> findUserProjects(User user) {
+        return crudService().getPropertyValues(ProjectRole.class, "project", QueryParameters.with("user", user));
+    }
+
+    @Override
+    public List<RequestCollection> getCollections(Project project) {
+        return crudService().find(RequestCollection.class, QueryParameters.with("project", project));
+    }
+
+    @Override
+    public List<RequestCollection> getCollections(RequestCollection collection) {
+        return crudService().find(RequestCollection.class, QueryParameters.with("parentCollection", collection));
+    }
+
+    @Override
+    public List<RequestItem> getItems(RequestCollection collection) {
+        return crudService().find(RequestItem.class, QueryParameters.with("collection", collection));
+    }
+
+
 }

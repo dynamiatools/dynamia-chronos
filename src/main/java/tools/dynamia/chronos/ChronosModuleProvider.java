@@ -19,9 +19,11 @@ public class ChronosModuleProvider implements ModuleProvider {
                 .icon("fa-tachometer-alt")
                 .main());
 
-        mod.addPage(new CrudPage("projects", "Projects", Project.class)
+        mod.addPage(new Page("projects","Projects","classpath:/zk/pages/projects.zul")
                 .featured()
-                .icon("fa-tasks"));
+                .icon("fa-tasks")
+                .main());
+
 
         return mod;
     }

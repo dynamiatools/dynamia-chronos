@@ -1,23 +1,48 @@
-.badge{
+.badge {
     margin-left: 3px;
 }
 
-.badge-failing{
+.badge-failing {
     background-color: #D50000;
     color: white;
 }
 
-.badge-ok{
+.badge-ok {
     background-color: #00C851;
     color: white;
 }
 
-.vars{
+.badge-get,.badge-head {
+    background-color: #00C851;
+    color: white;
+}
+
+.badge-post {
+    background-color: #d4860b;
+    color: white;
+}
+
+.badge-put {
+    background-color: #0a53be;
+    color: white;
+}
+
+.badge-delete {
+    background-color: #b70404;
+    color: white;
+}
+
+.badge-options {
+    background-color: #ab47bc;
+    color: white;
+}
+
+.vars {
     font-family: "Courier New", serif;
     font-weight: bold;
 }
 
-.vars b{
+.vars b {
     background: #eaeaea;
     color: #0a53be;
     padding: 3px;

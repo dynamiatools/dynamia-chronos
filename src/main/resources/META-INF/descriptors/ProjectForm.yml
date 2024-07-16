@@ -23,6 +23,9 @@ fields:
   notificators:
     component: crudview
 
+  roles:
+    component: crudview
+
 
 layout:
   columns: 1

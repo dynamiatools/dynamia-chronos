@@ -27,6 +27,9 @@ public class Project extends SimpleEntityUuid {
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Notificator> notificators = new ArrayList<>();
 
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProjectRole> roles = new ArrayList<>();
+
     public Project() {
     }
 
@@ -85,5 +88,13 @@ public class Project extends SimpleEntityUuid {
 
     public void setCollections(List<RequestCollection> collections) {
         this.collections = collections;
+    }
+
+    public List<ProjectRole> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<ProjectRole> roles) {
+        this.roles = roles;
     }
 }

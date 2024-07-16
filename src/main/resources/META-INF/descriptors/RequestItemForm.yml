@@ -20,6 +20,14 @@ fields:
       multiline: true
       height: 80px
       span: 4
+  requestBody:
+    label: Body
+    component: aceditor
+    params:
+      multiline: true
+      height: 400px
+      span: 4
+      mode: json
 
 
 layout:
