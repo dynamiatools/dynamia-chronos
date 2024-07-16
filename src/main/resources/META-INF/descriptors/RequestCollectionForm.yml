@@ -1,0 +1,16 @@
+view: form
+beanClass: tools.dynamia.chronos.domain.RequestCollection
+autofields: false
+
+fields:
+  title:
+  descripcion:
+    params:
+      height: 100px
+      multiline: true
+  variables:
+    component: crudview
+  requests:
+    component: crudview
+  collections:
+    component: crudview

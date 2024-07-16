@@ -17,7 +17,7 @@ Main schedule configurer
 @Service
 public class CronJobScheduler implements SchedulingConfigurer {
 
-    private SimpleCache<Long, ScheduledTask> tasksCache = new SimpleCache<>();
+    private SimpleCache<String, ScheduledTask> tasksCache = new SimpleCache<>();
     private LoggingService logger = new SLF4JLoggingService(CronJobScheduler.class);
 
     private final CronJobsService cronJobsService;
@@ -52,7 +52,7 @@ public class CronJobScheduler implements SchedulingConfigurer {
         cancel(cronJob);
 
         if (cronJob.isActive()) {
-            logger.info("Scheduling cron job " + cronJob.getId() + " - " + cronJob.getName()+" with "+cronJob.getCronExpression());
+            logger.info("Scheduling cron job " + cronJob.getId() + " - " + cronJob.getName() + " with " + cronJob.getCronExpression());
             ScheduledTask scheduledTask = taskRegistrar.scheduleCronTask(new CronTask(
                     () -> cronJobsService.execute(cronJob)
                     , cronJob.getCronExpression()

@@ -1,0 +1,12 @@
+view: table
+beanClass: tools.dynamia.chronos.domain.RequestItem
+autofields: false
+
+fields:
+  name:
+  httpMethod:
+    label: Method
+  serverHost:
+
+layout:
+  columns: 4

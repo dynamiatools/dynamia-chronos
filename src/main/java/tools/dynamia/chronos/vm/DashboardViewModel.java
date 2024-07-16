@@ -17,8 +17,10 @@ import tools.dynamia.chronos.domain.Variable;
 import tools.dynamia.chronos.services.CronJobsService;
 import tools.dynamia.chronos.services.ProjectService;
 import tools.dynamia.domain.jpa.SimpleEntity;
+import tools.dynamia.domain.jpa.SimpleEntityUuid;
 import tools.dynamia.domain.util.DomainUtils;
 import tools.dynamia.integration.Containers;
+import tools.dynamia.modules.saas.jpa.SimpleEntityUuidSaaS;
 import tools.dynamia.zk.crud.CrudView;
 import tools.dynamia.zk.crud.ui.EntityTreeModel;
 import tools.dynamia.zk.crud.ui.EntityTreeNode;
@@ -44,7 +46,7 @@ public class DashboardViewModel {
 
     private long okCronJobsCount;
 
-    private EntityTreeModel<? extends SimpleEntity> treeModel;
+    private EntityTreeModel<? extends SimpleEntityUuid> treeModel;
 
     private EntityTreeNode selectedNode;
     private String viewerType;
@@ -68,17 +70,17 @@ public class DashboardViewModel {
     }
 
     private void loadModel() {
-        RootTreeNode<SimpleEntity> root = new RootTreeNode<>(new Project("Projects"));
+        RootTreeNode<SimpleEntityUuid> root = new RootTreeNode<>(new Project("Projects"));
 
         projects.forEach(project -> {
 
-            var variablesNode = new LazyEntityTreeNode<SimpleEntity>("Variables", "fa-hashtag");
+            var variablesNode = new LazyEntityTreeNode<SimpleEntityUuid>("Variables", "fa-hashtag");
             variablesNode.setEntity(new Variable());
 
-            var notificatorsNode = new LazyEntityTreeNode<SimpleEntity>("Notificators", "fa-bell");
+            var notificatorsNode = new LazyEntityTreeNode<SimpleEntityUuid>("Notificators", "fa-bell");
             notificatorsNode.setEntity(new Notificator());
 
-            var cronJobsNode = new LazyEntityTreeNode<SimpleEntity>("Cron jobs", "fa-tasks");
+            var cronJobsNode = new LazyEntityTreeNode<SimpleEntityUuid>("Cron jobs", "fa-tasks");
             cronJobsNode.setEntity(new CronJob());
 
             var projectNode = root.addChild(project);
@@ -189,7 +191,7 @@ public class DashboardViewModel {
         ZKBindingUtil.postNotifyChange(this);
     }
 
-    public EntityTreeModel<? extends SimpleEntity> getTreeModel() {
+    public EntityTreeModel<? extends SimpleEntityUuid> getTreeModel() {
         return treeModel;
     }
 

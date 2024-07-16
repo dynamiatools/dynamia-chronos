@@ -1,18 +1,18 @@
 package tools.dynamia.chronos.domain;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-import tools.dynamia.domain.jpa.SimpleEntity;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import jakarta.persistence.*;
+import tools.dynamia.domain.jpa.SimpleEntityUuid;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "crn_projects")
-public class Project extends SimpleEntity {
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class Project extends SimpleEntityUuid {
 
     private String name;
     @Column(length = 1000)
@@ -21,6 +21,8 @@ public class Project extends SimpleEntity {
     private List<Variable> variables = new ArrayList<>();
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CronJob> cronjobs = new ArrayList<>();
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RequestCollection> collections = new ArrayList<>();
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Notificator> notificators = new ArrayList<>();
@@ -75,5 +77,13 @@ public class Project extends SimpleEntity {
 
     public void setNotificators(List<Notificator> notificators) {
         this.notificators = notificators;
+    }
+
+    public List<RequestCollection> getCollections() {
+        return collections;
+    }
+
+    public void setCollections(List<RequestCollection> collections) {
+        this.collections = collections;
     }
 }

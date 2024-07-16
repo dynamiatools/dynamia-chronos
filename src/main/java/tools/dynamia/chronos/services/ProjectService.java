@@ -13,7 +13,7 @@ import java.util.List;
  */
 public interface ProjectService {
 
-    Project getById(Long id);
+    Project getById(String id);
 
     void clearCache(Project project);
 

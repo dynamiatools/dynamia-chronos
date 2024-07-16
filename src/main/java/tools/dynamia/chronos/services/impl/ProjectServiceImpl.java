@@ -17,9 +17,9 @@ import java.util.List;
 @Service
 public class ProjectServiceImpl extends AbstractService implements ProjectService {
 
-    private SimpleCache<Long, Project> cache = new SimpleCache<>();
-    private SimpleCache<Long, List<Variable>> variablesCache = new SimpleCache<>();
-    private SimpleCache<Long, List<Notificator>> notificatorsCache = new SimpleCache<>();
+    private SimpleCache<String, Project> cache = new SimpleCache<>();
+    private SimpleCache<String, List<Variable>> variablesCache = new SimpleCache<>();
+    private SimpleCache<String, List<Notificator>> notificatorsCache = new SimpleCache<>();
 
 
     @Override
@@ -30,7 +30,7 @@ public class ProjectServiceImpl extends AbstractService implements ProjectServic
     }
 
     @Override
-    public Project getById(Long id) {
+    public Project getById(String id) {
         return cache.getOrLoad(id, key -> crudService().find(Project.class, id));
     }
 
