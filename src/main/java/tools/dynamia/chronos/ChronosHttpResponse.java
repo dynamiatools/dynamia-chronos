@@ -6,6 +6,7 @@ import jakarta.persistence.MappedSuperclass;
 import jakarta.validation.constraints.NotNull;
 import tools.dynamia.domain.jpa.SimpleEntityUuid;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
@@ -88,5 +89,9 @@ public class ChronosHttpResponse extends SimpleEntityUuid {
 
     public void setExecuted(boolean executed) {
         this.executed = executed;
+    }
+
+    public long getSize() {
+        return response != null ? response.getBytes(StandardCharsets.UTF_8).length : 0;
     }
 }

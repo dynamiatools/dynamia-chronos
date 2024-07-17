@@ -23,6 +23,7 @@ public class ChronosHttpRequest extends SimpleEntityUuid {
     private String description;
     @NotEmpty
     @NotNull
+    @Column(length = 2000)
     private String serverHost;
     private String serverAuthorization;
     @NotNull
@@ -107,8 +108,6 @@ public class ChronosHttpRequest extends SimpleEntityUuid {
     public void setHttpMethod(ChronosHttpMethod httpMethod) {
         this.httpMethod = httpMethod;
     }
-
-
 
     @Override
     public String toString() {

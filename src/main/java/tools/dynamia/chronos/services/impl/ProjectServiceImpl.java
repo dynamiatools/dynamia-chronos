@@ -1,16 +1,21 @@
 package tools.dynamia.chronos.services.impl;
 
+import tools.dynamia.chronos.ChronosHttpMethod;
 import tools.dynamia.chronos.domain.*;
 import tools.dynamia.chronos.notificators.NotificationSender;
 import tools.dynamia.chronos.services.ProjectService;
 import tools.dynamia.commons.SimpleCache;
+import tools.dynamia.commons.StringPojoParser;
 import tools.dynamia.domain.query.QueryParameters;
 import tools.dynamia.domain.services.AbstractService;
 import tools.dynamia.integration.Containers;
 import tools.dynamia.integration.sterotypes.Service;
 import tools.dynamia.modules.security.domain.User;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ProjectServiceImpl extends AbstractService implements ProjectService {
@@ -83,5 +88,68 @@ public class ProjectServiceImpl extends AbstractService implements ProjectServic
         return crudService().find(RequestItem.class, QueryParameters.with("collection", collection));
     }
 
+    @Override
+    public List<ProjectRole> findProjectRoles(User user) {
+        return crudService().find(ProjectRole.class, QueryParameters.with("user", user));
+    }
 
+
+    @Override
+    public RequestCollection importCollectionFromPostman(String postmanJson) {
+        Map<String, Object> json = StringPojoParser.parseJsonToMap(postmanJson);
+        RequestCollection result = new RequestCollection();
+        if (json.get("info") instanceof Map info) {
+            result.setTitle((String) info.get("name"));
+        }
+        if (json.get("item") instanceof List items) {
+            items.forEach(it -> {
+                if (it instanceof Map<?, ?> subitem) {
+                    importCollection(subitem, result);
+                }
+            });
+            System.out.println(json);
+        }
+        return result;
+
+    }
+
+    private static void importCollection(Map<?, ?> subitem, RequestCollection parent) {
+        if (subitem.get("item") instanceof List items) {
+            RequestCollection subCollection = new RequestCollection();
+            subCollection.setTitle((String) subitem.get("name"));
+            subCollection.setParentCollection(parent);
+            parent.getCollections().add(subCollection);
+            subCollection.setParentCollection(parent);
+
+            items.forEach(it -> {
+                if (it instanceof Map<?, ?> subsubitem) {
+                    importCollection(subsubitem, subCollection);
+                }
+            });
+
+        } else if (subitem.get("request") instanceof Map request) {
+            RequestItem item = new RequestItem();
+            item.setCollection(parent);
+            item.setDescription((String) request.get("description"));
+            item.setName((String) subitem.get("name"));
+            item.setHttpMethod(ChronosHttpMethod.valueOf((String) request.get("method")));
+            if (request.get("url") instanceof Map url) {
+                item.setServerHost((String) url.get("raw"));
+            }
+            if (request.get("body") instanceof Map body) {
+                item.setRequestBody((String) body.get("raw"));
+            }
+            if (request.get("header") instanceof List headers) {
+                Map<String, String> itemsHeader = new HashMap<>();
+                headers.forEach(h -> {
+                    if (h instanceof Map<?, ?> header) {
+                        itemsHeader.put((String) header.get("key"), (String) header.get("value"));
+                    }
+                });
+                item.setHeaders(itemsHeader);
+            }
+            parent.getRequests().add(item);
+            item.setCollection(parent);
+        }
+    }
 }

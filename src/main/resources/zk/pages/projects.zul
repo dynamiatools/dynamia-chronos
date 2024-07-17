@@ -1,22 +1,43 @@
 <zk>
+    <div viewModel="@id('vm') @init('tools.dynamia.chronos.vm.ProjectsViewModel')" vflex="1">
+
+        <borderlayout sclass="dashboard" vflex="1">
 
 
-    <borderlayout viewModel="@id('vm') @init('tools.dynamia.chronos.vm.ProjectsViewModel')" sclass="dashboard">
+            <west width="25%" splittable="true">
+                <tree model="@load(vm.treeModel)" itemRenderer="tools.dynamia.zk.crud.ui.EntityTreeItemRenderer"
+                      onSelect="@command('nodeSelected')" selectedItem="@bind(vm.selectedNode)"
+                      vflex="1"/>
+            </west>
 
+            <center>
+                <tabbox vflex="1" hflex="1" id="content-area">
+                    <tabs/>
+                    <tabpanels vflex="1"/>
+                </tabbox>
+            </center>
+        </borderlayout>
 
-        <west width="30%" splittable="true" >
-            <tree model="@load(vm.treeModel)" itemRenderer="tools.dynamia.zk.crud.ui.EntityTreeItemRenderer"
-                  onSelect="@command('nodeSelected')" selectedItem="@bind(vm.selectedNode)"
-                  vflex="1"/>
-        </west>
+        <menupopup id="cronjobs-menu">
+            <menuitem label="Add Cron Job" iconSclass="z-icon-check" onClick="@command('addCronJob')"/>
 
-        <center>
-            <tabbox vflex="1" hflex="1" id="content-area">
-                <tabs></tabs>
-                <tabpanels></tabpanels>
-            </tabbox>
-        </center>
+        </menupopup>
 
+        <menupopup id="projects-menu">
+            <menuitem label="Roles" iconSclass="z-icon-check" onClick="@command('addCronJob')"/>
 
-    </borderlayout>
+        </menupopup>
+
+        <menupopup id="collections-menu">
+            <menuitem label="Add Folder" iconSclass="z-icon-folder" onClick="@command('addCollection')"/>
+            <menuitem label="Import" iconSclass="z-icon-up-arrow" onClick="@command('importCollection')"/>
+        </menupopup>
+
+        <menupopup id="collection-menu">
+            <menuitem label="Add Folder" iconSclass="z-icon-folder" onClick="@command('addCollection')"/>
+            <menuitem label="Add Request" iconSclass="z-icon-chevron-right" onClick="@command('addRequest')"/>
+            <menuitem label="Delete" sclass="text-danger" onClick="@command('deleteCollection')" style="color: red"/>
+        </menupopup>
+
+    </div>
 </zk>

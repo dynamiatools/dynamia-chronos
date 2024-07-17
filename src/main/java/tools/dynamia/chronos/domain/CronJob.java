@@ -34,6 +34,13 @@ public class CronJob extends ChronosHttpRequest implements ProjectAware {
     private long executionsCount;
     private String status;
 
+    public CronJob() {
+    }
+
+    public CronJob(Project project) {
+        this.project = project;
+    }
+
     @Transient
     public String getNextExecution() {
         if (!isActive()) {

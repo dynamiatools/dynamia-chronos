@@ -23,6 +23,9 @@ public class ChronosHttpRequestExecutor {
     protected final ChronosHttpRequest request;
     protected final Consumer<String> logger;
     protected final List<Variable> variables;
+    private Consumer<HttpRequest> onRequest;
+    private Consumer<HttpResponse<String>> onResponse;
+
 
     public ChronosHttpRequestExecutor(ChronosHttpRequest request, List<Variable> variables, Consumer<String> logger) {
         this.request = request;
@@ -59,7 +62,9 @@ public class ChronosHttpRequestExecutor {
 
 
             try {
+                if (onRequest != null) onRequest.accept(internalRequest.build());
                 logger.accept("Executing http request " + url);
+                response.setStartDate(LocalDateTime.now());
                 HttpResponse<String> internalResponse = httpClient.send(internalRequest.build(), HttpResponse.BodyHandlers.ofString());
                 HttpStatus status = HttpStatus.resolve(internalResponse.statusCode());
                 if (status == null) {
@@ -74,6 +79,7 @@ public class ChronosHttpRequestExecutor {
                 response.setEndDate(LocalDateTime.now());
                 response.setDuration(Duration.between(response.getStartDate(), response.getEndDate()));
                 logger.accept("HTTP Response " + response.getResponse());
+                if (onResponse != null) onResponse.accept(internalResponse);
             } catch (Exception e) {
                 response.setFail(true);
                 response.setResponse(e.getClass().getSimpleName() + ": " + e.getMessage());
@@ -104,4 +110,11 @@ public class ChronosHttpRequestExecutor {
     }
 
 
+    public void setOnRequest(Consumer<HttpRequest> onRequest) {
+        this.onRequest = onRequest;
+    }
+
+    public void setOnResponse(Consumer<HttpResponse<String>> onResponse) {
+        this.onResponse = onResponse;
+    }
 }

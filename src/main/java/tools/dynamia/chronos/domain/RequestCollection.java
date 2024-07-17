@@ -5,20 +5,20 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
 import tools.dynamia.chronos.HeadersProvider;
+import tools.dynamia.chronos.ProjectAware;
 import tools.dynamia.commons.StringPojoParser;
 import tools.dynamia.domain.jpa.SimpleEntityUuid;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "crn_collections")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class RequestCollection extends SimpleEntityUuid implements HeadersProvider {
+public class RequestCollection extends SimpleEntityUuid implements HeadersProvider, ProjectAware {
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
@@ -42,6 +42,12 @@ public class RequestCollection extends SimpleEntityUuid implements HeadersProvid
     @Column(columnDefinition = "json")
     private String headers;
 
+    public RequestCollection() {
+    }
+
+    public RequestCollection(Project project) {
+        this.project = project;
+    }
 
     @Override
     public Map<String, String> getHeaders() {
@@ -118,4 +124,8 @@ public class RequestCollection extends SimpleEntityUuid implements HeadersProvid
         this.variables = variables;
     }
 
+    @Override
+    public String toString() {
+        return getTitle();
+    }
 }
