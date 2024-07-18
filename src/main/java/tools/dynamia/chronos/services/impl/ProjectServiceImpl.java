@@ -32,6 +32,7 @@ public class ProjectServiceImpl extends AbstractService implements ProjectServic
         notificatorsCache.remove(project.getId());
     }
 
+
     @Override
     public Project getById(String id) {
         return cache.getOrLoad(id, key -> crudService().find(Project.class, id));
@@ -101,6 +102,17 @@ public class ProjectServiceImpl extends AbstractService implements ProjectServic
         if (json.get("info") instanceof Map info) {
             result.setTitle((String) info.get("name"));
         }
+        if (json.get("variable") instanceof List vars) {
+            vars.forEach(obj -> {
+                if (obj instanceof Map v) {
+                    var variable = new Variable(String.valueOf(v.get("key")), String.valueOf(v.get("value")));
+                    result.getVariables().add(variable);
+                    variable.setCollection(result);
+                }
+            });
+
+
+        }
         if (json.get("item") instanceof List items) {
             items.forEach(it -> {
                 if (it instanceof Map<?, ?> subitem) {
@@ -151,5 +163,10 @@ public class ProjectServiceImpl extends AbstractService implements ProjectServic
             parent.getRequests().add(item);
             item.setCollection(parent);
         }
+    }
+
+    @Override
+    public List<Variable> getVariables(RequestCollection collection) {
+        return crudService().find(Variable.class, "collection", collection);
     }
 }

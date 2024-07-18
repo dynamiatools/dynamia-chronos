@@ -40,4 +40,6 @@ public interface ProjectService {
     List<ProjectRole> findProjectRoles(User user);
 
     RequestCollection importCollectionFromPostman(String postmanJson);
+
+    List<Variable> getVariables(RequestCollection collection);
 }

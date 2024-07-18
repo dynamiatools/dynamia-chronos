@@ -76,3 +76,12 @@
 .text-danger .z-menuitem-text{
     color: #b70404;
 }
+
+
+/**
+Dark Mode: based in #282a36
+ */
+
+.sidebar-wrapper, .skin-black .bg-body{
+    background-color: #282a36 !important;
+}

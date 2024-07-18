@@ -1,10 +1,19 @@
 <zk>
-    <div viewModel="@id('vm') @init('tools.dynamia.chronos.vm.ProjectsViewModel')" vflex="1">
+    <style>
+        .projects .z-treecell {
+            border: none;
+        }
+        .projects .z-treecell-content{
+            padding: 2px 2px;
+        }
+    </style>
+
+    <div viewModel="@id('vm') @init('tools.dynamia.chronos.vm.ProjectsViewModel')" vflex="1" sclass="projects">
 
         <borderlayout sclass="dashboard" vflex="1">
 
 
-            <west width="25%" splittable="true">
+            <west width="400px" splittable="true">
                 <tree model="@load(vm.treeModel)" itemRenderer="tools.dynamia.zk.crud.ui.EntityTreeItemRenderer"
                       onSelect="@command('nodeSelected')" selectedItem="@bind(vm.selectedNode)"
                       vflex="1"/>

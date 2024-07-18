@@ -1,6 +1,5 @@
 package tools.dynamia.chronos.vm;
 
-import org.apache.xmlbeans.impl.common.IOUtil;
 import org.zkoss.bind.annotation.*;
 import org.zkoss.zk.ui.Component;
 import org.zkoss.zul.Fileupload;
@@ -8,7 +7,6 @@ import org.zkoss.zul.Tab;
 import org.zkoss.zul.Tabbox;
 import org.zkoss.zul.Tabpanel;
 import tools.dynamia.chronos.domain.*;
-import tools.dynamia.commons.StringPojoParser;
 import tools.dynamia.domain.AbstractEntity;
 import tools.dynamia.domain.CrudServiceAware;
 import tools.dynamia.domain.jpa.SimpleEntityUuid;
@@ -18,12 +16,8 @@ import tools.dynamia.zk.crud.ui.EntityTreeNode;
 import tools.dynamia.zk.ui.Import;
 import tools.dynamia.zk.viewers.ui.Viewer;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.util.List;
-import java.util.Map;
 
 public class ProjectsViewModel extends AbstractProjectsViewModel implements CrudServiceAware {
 
@@ -40,6 +34,7 @@ public class ProjectsViewModel extends AbstractProjectsViewModel implements Crud
     protected void loadMoreNodes(Project project, EntityTreeNode<SimpleEntityUuid> projectNode) {
 
     }
+
 
     @AfterCompose
     public void afterCompose(@ContextParam(ContextType.VIEW) Component view) {
@@ -96,9 +91,17 @@ public class ProjectsViewModel extends AbstractProjectsViewModel implements Crud
 
 
     private void showProject(Project project, UserRole userRole) {
-        Viewer viewer = new Viewer("form", Project.class, project);
-        viewer.setReadonly(userRole == UserRole.Reader);
-        createOrSelectPanel(project, project.getName(), viewer);
+        Import content = new Import();
+        content.setSrc("classpath:/zk/pages/project.zul");
+        content.addArg("entity", project);
+        content.addArg("userRole", userRole);
+        content.addArg("node", getSelectedNode());
+        content.addArg("viewModel", this);
+        content.setVflex("1");
+        var panel = createOrSelectPanel(project, project.getName(), content);
+        panel.setHflex("1");
+
+        content.addArg("panel", panel);
     }
 
     private void showCronJob(CronJob cronJob, UserRole userRole) {
@@ -108,9 +111,17 @@ public class ProjectsViewModel extends AbstractProjectsViewModel implements Crud
     }
 
     private void showRequestCollection(RequestCollection collection, UserRole userRole) {
-        Viewer viewer = new Viewer("form", RequestCollection.class, collection);
-        viewer.setReadonly(userRole == UserRole.Reader);
-        createOrSelectPanel(collection, collection.getTitle(), viewer);
+        Import content = new Import();
+        content.setSrc("classpath:/zk/pages/collection.zul");
+        content.addArg("entity", collection);
+        content.addArg("userRole", userRole);
+        content.addArg("node", getSelectedNode());
+        content.addArg("viewModel", this);
+        content.setVflex("1");
+        var panel = createOrSelectPanel(collection, collection.getTitle(), content);
+        panel.setHflex("1");
+
+        content.addArg("panel", panel);
     }
 
     private void showRequestItem(RequestItem requestItem, UserRole userRole) {
