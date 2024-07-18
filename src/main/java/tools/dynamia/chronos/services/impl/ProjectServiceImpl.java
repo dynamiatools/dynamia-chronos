@@ -102,6 +102,7 @@ public class ProjectServiceImpl extends AbstractService implements ProjectServic
         if (json.get("info") instanceof Map info) {
             result.setTitle((String) info.get("name"));
         }
+
         if (json.get("variable") instanceof List vars) {
             vars.forEach(obj -> {
                 if (obj instanceof Map v) {
@@ -147,6 +148,18 @@ public class ProjectServiceImpl extends AbstractService implements ProjectServic
             item.setHttpMethod(ChronosHttpMethod.valueOf((String) request.get("method")));
             if (request.get("url") instanceof Map url) {
                 item.setServerHost((String) url.get("raw"));
+                if (url.get("variable") instanceof List params) {
+                    var paramsMap = new HashMap<String, String>();
+                    params.forEach(p -> {
+                        if (p instanceof Map<?, ?> param) {
+                            paramsMap.put((String) param.get("key"), (String) param.get("value"));
+                        }
+                    });
+                    if (!paramsMap.isEmpty()) {
+                        item.setParameters(paramsMap);
+                    }
+                }
+
             }
             if (request.get("body") instanceof Map body) {
                 item.setRequestBody((String) body.get("raw"));
@@ -168,5 +181,11 @@ public class ProjectServiceImpl extends AbstractService implements ProjectServic
     @Override
     public List<Variable> getVariables(RequestCollection collection) {
         return crudService().find(Variable.class, "collection", collection);
+    }
+
+
+    @Override
+    public ProjectRole findProjectRole(Project project, User user) {
+        return crudService().findSingle(ProjectRole.class, QueryParameters.with("project", project).add("user", user));
     }
 }

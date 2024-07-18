@@ -14,15 +14,12 @@ public class ChronosModuleProvider implements ModuleProvider {
         var mod = new Module("main", "Chronos");
         mod.setIcon("fa-clock");
 
-        mod.addPage(new Page("dashboard","Dashboard","classpath:/zk/pages/dashboard.zul")
+        mod.addPage(new Page("dashboard", "Dashboard", "classpath:/zk/pages/dashboard.zul")
                 .featured()
                 .icon("fa-tachometer-alt")
                 .main());
 
-        mod.addPage(new Page("projects","Projects","classpath:/zk/pages/projects.zul")
-                .featured()
-                .icon("fa-tasks")
-                .main());
+        mod.addPageGroup(new ProjectPageGroup());
 
 
         return mod;

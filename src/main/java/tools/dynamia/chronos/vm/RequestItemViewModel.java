@@ -1,15 +1,16 @@
 package tools.dynamia.chronos.vm;
 
-import org.springframework.http.HttpMethod;
 import org.zkoss.bind.annotation.BindingParam;
 import org.zkoss.bind.annotation.Command;
 import org.zkoss.bind.annotation.Init;
 import org.zkoss.zhtml.Messagebox;
-import org.zkoss.zhtml.Var;
 import tools.dynamia.chronos.ChronosHttpMethod;
 import tools.dynamia.chronos.ChronosHttpRequestExecutor;
 import tools.dynamia.chronos.ChronosHttpResponse;
-import tools.dynamia.chronos.domain.*;
+import tools.dynamia.chronos.domain.RequestCollection;
+import tools.dynamia.chronos.domain.RequestItem;
+import tools.dynamia.chronos.domain.UserRole;
+import tools.dynamia.chronos.domain.Variable;
 import tools.dynamia.chronos.services.ProjectService;
 import tools.dynamia.commons.StringPojoParser;
 import tools.dynamia.commons.logger.LoggingService;
@@ -17,13 +18,11 @@ import tools.dynamia.commons.logger.SLF4JLoggingService;
 import tools.dynamia.domain.jpa.SimpleEntityUuid;
 import tools.dynamia.domain.util.LabelValue;
 import tools.dynamia.integration.Containers;
-import tools.dynamia.integration.ms.Message;
 import tools.dynamia.zk.AbstractViewModel;
 import tools.dynamia.zk.crud.ui.EntityTreeNode;
 import tools.dynamia.zk.util.ZKUtil;
 
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -34,6 +33,7 @@ public class RequestItemViewModel extends AbstractViewModel<RequestItem> {
     private ProjectService projectService = Containers.get().findObject(ProjectService.class);
     private ChronosHttpResponse response;
     private List<LabelValue> headers;
+    private List<LabelValue> parameters;
     private List<LabelValue> responseHeaders;
     private ProjectsViewModel projectsVM;
     private EntityTreeNode<SimpleEntityUuid> node;
@@ -47,6 +47,7 @@ public class RequestItemViewModel extends AbstractViewModel<RequestItem> {
         crudService().executeWithinTransaction(() -> {
             setModel(crudService().load(RequestItem.class, getModel().getId()));
             loadHeaders();
+            loadParameters();
             loadVariables();
         });
         notifyChanges();
@@ -78,6 +79,14 @@ public class RequestItemViewModel extends AbstractViewModel<RequestItem> {
         var requestHeader = getModel().getHeaders();
         if (requestHeader != null) {
             requestHeader.forEach(this::addHeader);
+        }
+    }
+
+    private void loadParameters() {
+        parameters = new ArrayList<>();
+        var params = getModel().getParameters();
+        if (params != null) {
+            params.forEach(this::addParameter);
         }
     }
 
@@ -133,8 +142,23 @@ public class RequestItemViewModel extends AbstractViewModel<RequestItem> {
     }
 
     @Command
+    public void addParameter() {
+        addParameter("", "");
+        save();
+        notifyChanges();
+    }
+
+    @Command
     public void removeHeader(@BindingParam LabelValue header) {
         getHeaders().remove(header);
+        save();
+        notifyChanges();
+
+    }
+
+    @Command
+    public void removeParameter(@BindingParam LabelValue parameter) {
+        getParameters().remove(parameter);
         save();
         notifyChanges();
 
@@ -146,13 +170,19 @@ public class RequestItemViewModel extends AbstractViewModel<RequestItem> {
         }
     }
 
+    public void addParameter(String key, String value) {
+        if (parameters.stream().noneMatch(h -> h.getLabel().equals(key))) {
+            parameters.add(new LabelValue(key, value));
+        }
+    }
+
     private void beutify() {
         try {
             if (response != null && response.getResponse() != null && !response.getResponse().isBlank()) {
                 //maybe is json
                 if (response.getResponse().startsWith("{") && response.getResponse().endsWith("}")) {
-                    Object json = StringPojoParser.parseJsonToPojo(response.getResponse(), Object.class);
-                    response.setResponse(StringPojoParser.convertPojoToJson(json));
+                   Object json = StringPojoParser.parseJsonToPojo(response.getResponse(), Object.class);
+                   response.setResponse(StringPojoParser.convertPojoToJson(json));
                 }
 
             }
@@ -194,5 +224,9 @@ public class RequestItemViewModel extends AbstractViewModel<RequestItem> {
 
     public List<LabelValue> getResponseHeaders() {
         return responseHeaders;
+    }
+
+    public List<LabelValue> getParameters() {
+        return parameters;
     }
 }

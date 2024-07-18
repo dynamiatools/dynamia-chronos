@@ -53,28 +53,28 @@
     font-weight: bold;
 }
 
-.http-method-GET, .http-method-HEAD, input[value="GET"],input[value="HEAD"] {
+.http-method-GET, .http-method-HEAD, input[value="GET"], input[value="HEAD"] {
     color: #00C851;
 }
 
-.http-method-POST,input[value="POST"] {
-    color: #d4860b;
+.http-method-POST, input[value="POST"] {
+    color: #d4860b !important;
 }
 
-.http-method-PUT,input[value="PUT"] {
+.http-method-PUT, input[value="PUT"] {
     color: #0a53be;
 }
 
-.http-method-DELETE,input[value="DELETE"] {
-    color: #b70404;
+.http-method-DELETE, input[value="DELETE"] {
+    color: #fb394b;
 }
 
-.http-method-OPTIONS,input[value="OPTIONS"] {
+.http-method-OPTIONS, input[value="OPTIONS"] {
     color: #ab47bc;
 }
 
-.text-danger .z-menuitem-text{
-    color: #b70404;
+.text-danger .z-menuitem-text {
+    color: #fb394b;
 }
 
 
@@ -82,6 +82,15 @@
 Dark Mode: based in #282a36
  */
 
-.sidebar-wrapper, .skin-black .bg-body{
+.sidebar-wrapper, .skin-black .bg-body {
     background-color: #282a36 !important;
+}
+
+.skin-dracula  {
+    --dt-ascent-color: #ff5722ff !important;
+}
+
+
+.projects .badge{
+    margin-right: 5px;
 }

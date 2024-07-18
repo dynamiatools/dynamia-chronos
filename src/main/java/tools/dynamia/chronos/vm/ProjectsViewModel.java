@@ -11,13 +11,17 @@ import tools.dynamia.domain.AbstractEntity;
 import tools.dynamia.domain.CrudServiceAware;
 import tools.dynamia.domain.jpa.SimpleEntityUuid;
 import tools.dynamia.io.IOUtils;
+import tools.dynamia.modules.security.CurrentUser;
+import tools.dynamia.navigation.Page;
 import tools.dynamia.ui.UIMessages;
 import tools.dynamia.zk.crud.ui.EntityTreeNode;
 import tools.dynamia.zk.ui.Import;
+import tools.dynamia.zk.util.ZKUtil;
 import tools.dynamia.zk.viewers.ui.Viewer;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 public class ProjectsViewModel extends AbstractProjectsViewModel implements CrudServiceAware {
 
@@ -27,7 +31,24 @@ public class ProjectsViewModel extends AbstractProjectsViewModel implements Crud
 
     @Init
     public void init() {
-        super.init();
+        var project = (Project) ZKUtil.getExecutionArg("project");
+        if (project == null) {
+            project = (Project) Page.getCurrent().getAttribute("project");
+        }
+        if (project != null) {
+            projects = List.of(project);
+            var role = projectService.findProjectRole(project, CurrentUser.get().getUser());
+            if (role == null) {
+                role = new ProjectRole();
+                role.setProject(project);
+                role.setUser(CurrentUser.get().getUser());
+                role.setRole(UserRole.Reader);
+            }
+            roles = List.of(role);
+            loadModel();
+        } else {
+            super.init();
+        }
     }
 
     @Override
@@ -203,6 +224,8 @@ public class ProjectsViewModel extends AbstractProjectsViewModel implements Crud
                 getSelectedNode().addChild(node);
                 getSelectedNode().open();
                 notifyChanges();
+
+                UIMessages.showMessage("Collection imported");
             }
         });
     }

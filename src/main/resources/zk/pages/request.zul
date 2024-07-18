@@ -21,13 +21,19 @@
                         <toolbarbutton label="Save Changes" onClick="@command('save')"/>
                     </toolbar>
                     <tabs>
+                        <tab label="Overview"/>
                         <tab label="Body"/>
                         <tab label="Headers"/>
+                        <tab label="Parameters"/>
                     </tabs>
                     <tabpanels>
                         <tabpanel>
+                            <viewer descriptorId="requestOverviewForm" value="@load(vm.model)"/>
+                        </tabpanel>
+                        <tabpanel>
                             <aceditor value="@bind(vm.model.requestBody)" mode="json" vflex="1" theme="dracula"/>
                         </tabpanel>
+
                         <tabpanel>
                             <listbox model="@load(vm.headers)" hflex="1">
                                 <listhead sizable="true">
@@ -45,7 +51,8 @@
                                                      placeholder="value"/>
                                         </listcell>
                                         <listcell>
-                                            <a iconSclass="z-icon-remove" onClick="@command('removeHeader',header=h)" sclass="text-danger"/>
+                                            <a iconSclass="z-icon-remove" onClick="@command('removeHeader',header=h)"
+                                               sclass="text-danger"/>
                                         </listcell>
                                     </listitem>
                                 </template>
@@ -56,6 +63,38 @@
                                 </listfoot>
                             </listbox>
                         </tabpanel>
+
+                        <tabpanel>
+                            <listbox model="@load(vm.parameters)" hflex="1">
+                                <listhead sizable="true">
+                                    <listheader label="Key"/>
+                                    <listheader label="Value"/>
+                                    <listheader width="60px" align="center"/>
+                                </listhead>
+                                <template name="model" var="p">
+                                    <listitem>
+                                        <listcell>
+                                            <textbox inplace="true" value="@bind(p.label)" hflex="1" placeholder="key"/>
+                                        </listcell>
+                                        <listcell>
+                                            <textbox inplace="true" value="@bind(p.value)" hflex="1"
+                                                     placeholder="value"/>
+                                        </listcell>
+                                        <listcell>
+                                            <a iconSclass="z-icon-remove"
+                                               onClick="@command('removeParameter',parameter=p)" sclass="text-danger"/>
+                                        </listcell>
+                                    </listitem>
+                                </template>
+                                <listfoot>
+                                    <listfooter span="3">
+                                        <a label="Add parameter" onClick="@command('addParameter')"/>
+                                    </listfooter>
+                                </listfoot>
+                            </listbox>
+                        </tabpanel>
+
+
                     </tabpanels>
                 </tabbox>
             </div>
@@ -95,11 +134,6 @@
                                     <listcell label="@bind(h.value)"/>
                                 </listitem>
                             </template>
-                            <listfoot>
-                                <listfooter span="2">
-                                    <a label="Add header" onClick="@command('addHeader')"/>
-                                </listfooter>
-                            </listfoot>
                         </listbox>
                     </tabpanel>
                 </tabpanels>

@@ -38,7 +38,7 @@ public class ChronosHttpRequestExecutor {
     }
 
     public ChronosHttpResponse execute() {
-        final String url = parse(request.getServerHost());
+        final String url = parseParameters(parseVariables(request.getServerHost()));
         final ChronosHttpResponse response = newResponse();
         try (HttpClient httpClient = HttpClient.newHttpClient()) {
             Builder internalRequest = HttpRequest.newBuilder()
@@ -90,7 +90,7 @@ public class ChronosHttpRequestExecutor {
 
     protected void addHeader(Builder request, String header, final String value) {
         if (header != null && value != null && !value.isBlank()) {
-            var parsedValue = parse(value);
+            var parsedValue = parseVariables(value);
             request.header(header, parsedValue);
         }
     }
@@ -101,10 +101,23 @@ public class ChronosHttpRequestExecutor {
      * @param template
      * @return
      */
-    protected String parse(final String template) {
+    protected String parseVariables(final String template) {
         String result = template;
         for (var variable : variables) {
             result = result.replace("{{" + variable.getName() + "}}", variable.getValue());
+        }
+        return result;
+    }
+
+    protected String parseParameters(final String template) {
+        String result = template;
+        if (request instanceof ParametersProvider provider) {
+            var params = requireNonNullElse(provider.getParameters(), new HashMap<String, String>());
+            for (var entry : params.entrySet()) {
+                String paramValue = entry.getValue();
+                paramValue = parseVariables(paramValue);
+                result = result.replace(":" + entry.getKey(), paramValue);
+            }
         }
         return result;
     }

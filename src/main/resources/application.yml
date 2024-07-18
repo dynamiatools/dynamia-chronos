@@ -6,7 +6,7 @@ dynamia:
     template: Dynamical
     default-skin: dracula
     base-package: tools.dynamia
-    default-logo: /static/chronos-logo.png
+    default-logo: /static/chronos-logo-light.png
     default-icon: /static/chronos-icon.png
 
 

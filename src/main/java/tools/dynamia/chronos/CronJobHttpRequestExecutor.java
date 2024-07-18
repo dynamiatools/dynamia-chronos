@@ -29,7 +29,7 @@ public class CronJobHttpRequestExecutor extends ChronosHttpRequestExecutor {
         logger.accept("Executing cron job ");
 
 
-        var parsedServerPath = parse(request.getServerHost());
+        var parsedServerPath = parseVariables(request.getServerHost());
 
         ChronosHttpResponse log = null;
         if (parsedServerPath.startsWith("http")) {

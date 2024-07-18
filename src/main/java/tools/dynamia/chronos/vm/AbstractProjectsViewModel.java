@@ -180,9 +180,11 @@ public abstract class AbstractProjectsViewModel {
         var itemNode = new EntityTreeNode<SimpleEntityUuid>(item);
         itemNode.setLabel(item.getName());
         itemNode.setBadge(item.getHttpMethod().name());
+        itemNode.setBadgePosition("left");
         itemNode.setTooltiptext(item.getServerHost());
         itemNode.setIcon("fa-angle-right");
         itemNode.setRole(role);
+
         return itemNode;
     }
 }
