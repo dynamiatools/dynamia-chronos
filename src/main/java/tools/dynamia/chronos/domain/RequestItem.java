@@ -69,4 +69,16 @@ public class RequestItem extends ChronosHttpRequest implements HeadersProvider, 
     public void setCollection(RequestCollection collection) {
         this.collection = collection;
     }
+
+    public void checkHeaders() {
+        if (headers != null && headers.isBlank()) {
+            this.headers = null;
+        }
+    }
+
+    public void checkParams() {
+        if (parameters != null && parameters.isBlank()) {
+            this.parameters = null;
+        }
+    }
 }

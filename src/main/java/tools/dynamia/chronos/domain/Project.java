@@ -1,5 +1,6 @@
 package tools.dynamia.chronos.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
@@ -28,6 +29,7 @@ public class Project extends SimpleEntityUuid {
     private List<Notificator> notificators = new ArrayList<>();
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<ProjectRole> roles = new ArrayList<>();
 
     public Project() {

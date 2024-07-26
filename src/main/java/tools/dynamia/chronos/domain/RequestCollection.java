@@ -128,4 +128,10 @@ public class RequestCollection extends SimpleEntityUuid implements HeadersProvid
     public String toString() {
         return getTitle();
     }
+
+    public void checkHeaders() {
+        if (headers != null && headers.isEmpty()) {
+            this.headers = null;
+        }
+    }
 }
