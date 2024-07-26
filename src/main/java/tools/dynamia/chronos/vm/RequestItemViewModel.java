@@ -67,8 +67,7 @@ public class RequestItemViewModel extends AbstractViewModel<RequestItem> {
     private void loadHeaders() {
         headers = new ArrayList<>();
         addHeader("User-Agent", "Dynamia Chronos");
-        addHeader("Accept", "*/*");
-        addHeader("Accept-Encoding", "gzip, deflate, br");
+
 
         if (getModel().getServerAuthorization() != null && !getModel().getServerAuthorization().isBlank()) {
             addHeader("Authorization", getModel().getServerAuthorization());

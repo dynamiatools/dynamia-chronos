@@ -147,7 +147,7 @@ public abstract class AbstractProjectsViewModel {
 
             List<RequestItem> items = projectService.getItems(collection);
             items.forEach(item -> {
-                var itemNode = buildNode(item, role);
+                var itemNode = buildNode(item, project);
                 node.addChild(itemNode);
             });
 
@@ -176,14 +176,15 @@ public abstract class AbstractProjectsViewModel {
         return childNode;
     }
 
-    protected EntityTreeNode<SimpleEntityUuid> buildNode(RequestItem item, UserRole role) {
+    protected EntityTreeNode<SimpleEntityUuid> buildNode(RequestItem item, Project project) {
         var itemNode = new EntityTreeNode<SimpleEntityUuid>(item);
         itemNode.setLabel(item.getName());
         itemNode.setBadge(item.getHttpMethod().name());
         itemNode.setBadgePosition("left");
         itemNode.setTooltiptext(item.getServerHost());
-        itemNode.setIcon("fa-angle-right");
-        itemNode.setRole(role);
+        //itemNode.setIcon("fa-angle-right");
+        itemNode.setRole(getRole(project));
+        itemNode.setSource(project);
 
         return itemNode;
     }

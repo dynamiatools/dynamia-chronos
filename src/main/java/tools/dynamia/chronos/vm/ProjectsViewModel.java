@@ -159,11 +159,34 @@ public class ProjectsViewModel extends AbstractProjectsViewModel implements Crud
         content.addArg("panel", panel);
     }
 
+
     @Command
     public void addCronJob() {
-        CronJob cronJob = new CronJob();
-        var node = getSelectedNode();
-        System.out.println(node);
+        if (getSelectedNode() != null) {
+            var entity = getSelectedNode().getEntity();
+            CronJob cronjob = new CronJob();
+            cronjob.setName("New Cronjob");
+
+            Project project = (Project) getSelectedNode().getSource();
+            if (entity instanceof CronJob parent && parent.getId() != null) {
+                if (project == null) project = parent.getProject();
+                cronjob.setProject(project);
+            }
+
+            Project finalProject = project;
+            UIMessages.showInput("Cron job Name", String.class, name -> {
+                cronjob.setName(name);
+                cronjob.setCronExpression("@hourly");
+                cronjob.setActive(false);
+                cronjob.setServerHost("127.0.0.1");
+                crudService().executeWithinTransaction(() -> crudService().save(cronjob));
+                var node = buildNode(cronjob, finalProject);
+                getSelectedNode().addChild(node);
+                getSelectedNode().open();
+                notifyChanges();
+            });
+
+        }
     }
 
     @Command
@@ -233,7 +256,32 @@ public class ProjectsViewModel extends AbstractProjectsViewModel implements Crud
 
     @Command
     public void addRequest() {
-        var node = getSelectedNode();
-        System.out.println(node);
+        if (getSelectedNode() != null) {
+            var entity = getSelectedNode().getEntity();
+            RequestItem item = new RequestItem();
+            item.setName("New Request");
+            item.setServerHost("https://jsonplaceholder.typicode.com/todos");
+
+            Project project = (Project) getSelectedNode().getSource();
+            if (entity instanceof RequestCollection parent && parent.getId() != null) {
+                if (project == null) project = parent.getProject();
+
+                item.setCollection(parent);
+
+            }
+
+            Project finalProject = project;
+            UIMessages.showInput("Request Name", String.class, s -> {
+                item.setName(s);
+                crudService().executeWithinTransaction(() -> crudService().save(item));
+                var node = buildNode(item, finalProject);
+                getSelectedNode().addChild(node);
+                getSelectedNode().open();
+                notifyChanges();
+            });
+
+        }
     }
+
+
 }
