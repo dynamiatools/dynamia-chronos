@@ -9,7 +9,7 @@ import org.zkoss.zul.Tabpanel;
 import tools.dynamia.chronos.domain.*;
 import tools.dynamia.domain.AbstractEntity;
 import tools.dynamia.domain.CrudServiceAware;
-import tools.dynamia.domain.jpa.SimpleEntityUuid;
+import tools.dynamia.domain.jpa.SimpleEntity;
 import tools.dynamia.io.IOUtils;
 import tools.dynamia.modules.security.CurrentUser;
 import tools.dynamia.navigation.Page;
@@ -52,7 +52,7 @@ public class ProjectsViewModel extends AbstractProjectsViewModel implements Crud
     }
 
     @Override
-    protected void loadMoreNodes(Project project, EntityTreeNode<SimpleEntityUuid> projectNode) {
+    protected void loadMoreNodes(Project project, EntityTreeNode<SimpleEntity> projectNode) {
 
     }
 
@@ -88,7 +88,7 @@ public class ProjectsViewModel extends AbstractProjectsViewModel implements Crud
 
     }
 
-    private Tabpanel createOrSelectPanel(SimpleEntityUuid entity, String label, Component content) {
+    private Tabpanel createOrSelectPanel(SimpleEntity entity, String label, Component content) {
 
         var tabpanel = (Tabpanel) tabbox.getTabpanels()
                 .getChildren()

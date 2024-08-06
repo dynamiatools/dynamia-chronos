@@ -14,7 +14,7 @@ import tools.dynamia.commons.StringPojoParser;
 import tools.dynamia.commons.logger.LoggingService;
 import tools.dynamia.commons.logger.SLF4JLoggingService;
 import tools.dynamia.domain.ValidationError;
-import tools.dynamia.domain.jpa.SimpleEntityUuid;
+import tools.dynamia.domain.jpa.SimpleEntity;
 import tools.dynamia.domain.util.LabelValue;
 import tools.dynamia.zk.AbstractViewModel;
 import tools.dynamia.zk.crud.ui.EntityTreeNode;
@@ -32,7 +32,7 @@ public class RequestCollectionViewModel extends AbstractViewModel<RequestCollect
 
     private LoggingService logger = new SLF4JLoggingService(RequestCollectionViewModel.class);
     private ProjectsViewModel projectsVM;
-    private EntityTreeNode<SimpleEntityUuid> node;
+    private EntityTreeNode<SimpleEntity> node;
     private UserRole role;
 
 
@@ -41,7 +41,7 @@ public class RequestCollectionViewModel extends AbstractViewModel<RequestCollect
         System.out.println(getModel());
         setModel(crudService().load(RequestCollection.class, getModel().getId()));
         this.projectsVM = (ProjectsViewModel) ZKUtil.getExecutionArg("viewModel");
-        this.node = (EntityTreeNode<SimpleEntityUuid>) ZKUtil.getExecutionArg("node");
+        this.node = (EntityTreeNode<SimpleEntity>) ZKUtil.getExecutionArg("node");
         this.role = (UserRole) ZKUtil.getExecutionArg("role");
 
     }

@@ -11,7 +11,7 @@ import java.util.List;
  */
 public interface ProjectService {
 
-    Project getById(String id);
+    Project getById(Long id);
 
     void clearCache(Project project);
 
@@ -24,7 +24,7 @@ public interface ProjectService {
 
     List<Notificator> getNotificators(Project project);
 
-    NotificationSender findNotificationSender(String id);
+    NotificationSender findNotificationSender(Long id);
 
 
     List<Project> findAll();

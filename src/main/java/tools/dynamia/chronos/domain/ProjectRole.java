@@ -6,12 +6,12 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
-import tools.dynamia.domain.jpa.SimpleEntityUuid;
+import tools.dynamia.domain.jpa.SimpleEntity;
 import tools.dynamia.modules.security.domain.User;
 
 @Entity
 @Table(name = "crn_roles")
-public class ProjectRole extends SimpleEntityUuid {
+public class ProjectRole extends SimpleEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnore

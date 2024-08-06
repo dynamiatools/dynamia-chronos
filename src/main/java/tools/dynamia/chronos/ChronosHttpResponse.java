@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.validation.constraints.NotNull;
-import tools.dynamia.domain.jpa.SimpleEntityUuid;
+import tools.dynamia.domain.jpa.SimpleEntity;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @MappedSuperclass
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ChronosHttpResponse extends SimpleEntityUuid {
+public class ChronosHttpResponse extends SimpleEntity {
 
     private int statusCode;
     private String status;

@@ -4,7 +4,8 @@ import org.zkoss.bind.annotation.Init;
 import tools.dynamia.chronos.domain.*;
 import tools.dynamia.chronos.services.CronJobsService;
 import tools.dynamia.chronos.services.ProjectService;
-import tools.dynamia.domain.jpa.SimpleEntityUuid;
+import tools.dynamia.domain.jpa.SimpleEntity;
+import tools.dynamia.domain.jpa.SimpleEntity;
 import tools.dynamia.integration.Containers;
 import tools.dynamia.modules.security.CurrentUser;
 import tools.dynamia.zk.crud.ui.EntityTreeModel;
@@ -24,8 +25,8 @@ public abstract class AbstractProjectsViewModel {
     protected List<Project> projects;
     protected List<ProjectRole> roles;
 
-    protected EntityTreeModel<? extends SimpleEntityUuid> treeModel;
-    private EntityTreeNode<SimpleEntityUuid> selectedNode;
+    protected EntityTreeModel<? extends SimpleEntity> treeModel;
+    private EntityTreeNode<SimpleEntity> selectedNode;
 
 
     @Init
@@ -41,7 +42,7 @@ public abstract class AbstractProjectsViewModel {
 
 
     protected void loadModel() {
-        RootTreeNode<SimpleEntityUuid> root = new RootTreeNode<>(new Project("Projects"));
+        RootTreeNode<SimpleEntity> root = new RootTreeNode<>(new Project("Projects"));
 
         projects.forEach(project -> {
             var cronJobsNode = loadCronJobNode(project);
@@ -67,8 +68,8 @@ public abstract class AbstractProjectsViewModel {
     }
 
 
-    protected LazyEntityTreeNode<SimpleEntityUuid> loadCollectionsNode(Project project) {
-        var collectionsNode = new LazyEntityTreeNode<SimpleEntityUuid>("Requests", "folder");
+    protected LazyEntityTreeNode<SimpleEntity> loadCollectionsNode(Project project) {
+        var collectionsNode = new LazyEntityTreeNode<SimpleEntity>("Requests", "folder");
         collectionsNode.setEntity(new RequestCollection(project));
         collectionsNode.setContextMenuID("collections-menu");
         collectionsNode.setSource(project);
@@ -80,9 +81,9 @@ public abstract class AbstractProjectsViewModel {
         return collectionsNode;
     }
 
-    protected LazyEntityTreeNode<SimpleEntityUuid> loadCronJobNode(Project project) {
+    protected LazyEntityTreeNode<SimpleEntity> loadCronJobNode(Project project) {
 
-        var cronJobsNode = new LazyEntityTreeNode<SimpleEntityUuid>("Cron jobs", "fa-tasks");
+        var cronJobsNode = new LazyEntityTreeNode<SimpleEntity>("Cron jobs", "fa-tasks");
         cronJobsNode.setEntity(new CronJob(project));
         cronJobsNode.setLoader(node -> {
             var cronjobs = projectService.getCronJobs(project);
@@ -96,7 +97,7 @@ public abstract class AbstractProjectsViewModel {
     }
 
 
-    private void loadCollections(Project project, List<RequestCollection> collections, LazyEntityTreeNode<SimpleEntityUuid> parentNode) {
+    private void loadCollections(Project project, List<RequestCollection> collections, LazyEntityTreeNode<SimpleEntity> parentNode) {
 
         collections.forEach(collection -> {
             var collectionNode = buildNode(collection, project);
@@ -105,7 +106,7 @@ public abstract class AbstractProjectsViewModel {
     }
 
 
-    protected abstract void loadMoreNodes(Project project, EntityTreeNode<SimpleEntityUuid> projectNode);
+    protected abstract void loadMoreNodes(Project project, EntityTreeNode<SimpleEntity> projectNode);
 
     public abstract void nodeSelected();
 
@@ -114,7 +115,7 @@ public abstract class AbstractProjectsViewModel {
         ZKBindingUtil.postNotifyChange(this);
     }
 
-    public EntityTreeModel<? extends SimpleEntityUuid> getTreeModel() {
+    public EntityTreeModel<? extends SimpleEntity> getTreeModel() {
         return treeModel;
     }
 
@@ -123,17 +124,17 @@ public abstract class AbstractProjectsViewModel {
     }
 
 
-    public void setSelectedNode(EntityTreeNode<SimpleEntityUuid> selectedNode) {
+    public void setSelectedNode(EntityTreeNode<SimpleEntity> selectedNode) {
         this.selectedNode = selectedNode;
     }
 
-    public EntityTreeNode<SimpleEntityUuid> getSelectedNode() {
+    public EntityTreeNode<SimpleEntity> getSelectedNode() {
         return selectedNode;
     }
 
-    protected LazyEntityTreeNode<SimpleEntityUuid> buildNode(RequestCollection collection, Project project) {
+    protected LazyEntityTreeNode<SimpleEntity> buildNode(RequestCollection collection, Project project) {
         var role = getRole(project);
-        var collectionNode = new LazyEntityTreeNode<SimpleEntityUuid>(collection);
+        var collectionNode = new LazyEntityTreeNode<SimpleEntity>(collection);
         collectionNode.setLabel(collection.getTitle());
         collectionNode.setIcon("folder");
         collectionNode.setRole(role);
@@ -156,8 +157,8 @@ public abstract class AbstractProjectsViewModel {
         return collectionNode;
     }
 
-    protected EntityTreeNode<SimpleEntityUuid> buildNode(Project project) {
-        var projectNode = new EntityTreeNode<SimpleEntityUuid>(project);
+    protected EntityTreeNode<SimpleEntity> buildNode(Project project) {
+        var projectNode = new EntityTreeNode<SimpleEntity>(project);
         projectNode.setRole(getRole(project));
         projectNode.setIcon("fa-clock");
         projectNode.setContextMenuID("project-menu");
@@ -165,8 +166,8 @@ public abstract class AbstractProjectsViewModel {
         return projectNode;
     }
 
-    protected EntityTreeNode<SimpleEntityUuid> buildNode(CronJob cronJob, Project project) {
-        var childNode = new EntityTreeNode<SimpleEntityUuid>(cronJob);
+    protected EntityTreeNode<SimpleEntity> buildNode(CronJob cronJob, Project project) {
+        var childNode = new EntityTreeNode<SimpleEntity>(cronJob);
         childNode.setRole(getRole(project));
         childNode.setIcon("fa-cog");
         childNode.setBadge(cronJob.getStatus());
@@ -176,8 +177,8 @@ public abstract class AbstractProjectsViewModel {
         return childNode;
     }
 
-    protected EntityTreeNode<SimpleEntityUuid> buildNode(RequestItem item, Project project) {
-        var itemNode = new EntityTreeNode<SimpleEntityUuid>(item);
+    protected EntityTreeNode<SimpleEntity> buildNode(RequestItem item, Project project) {
+        var itemNode = new EntityTreeNode<SimpleEntity>(item);
         itemNode.setLabel(item.getName());
         itemNode.setBadge(item.getHttpMethod().name());
         itemNode.setBadgePosition("left");

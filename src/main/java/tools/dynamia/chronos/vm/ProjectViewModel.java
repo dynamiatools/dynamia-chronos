@@ -9,7 +9,7 @@ import tools.dynamia.chronos.domain.UserRole;
 import tools.dynamia.chronos.domain.Variable;
 import tools.dynamia.commons.logger.LoggingService;
 import tools.dynamia.commons.logger.SLF4JLoggingService;
-import tools.dynamia.domain.jpa.SimpleEntityUuid;
+import tools.dynamia.domain.jpa.SimpleEntity;
 import tools.dynamia.zk.AbstractViewModel;
 import tools.dynamia.zk.crud.ui.EntityTreeNode;
 import tools.dynamia.zk.util.ZKUtil;
@@ -19,7 +19,7 @@ public class ProjectViewModel extends AbstractViewModel<Project> {
 
     private LoggingService logger = new SLF4JLoggingService(ProjectViewModel.class);
     private ProjectsViewModel projectsVM;
-    private EntityTreeNode<SimpleEntityUuid> node;
+    private EntityTreeNode<SimpleEntity> node;
     private UserRole role;
 
 
@@ -28,7 +28,7 @@ public class ProjectViewModel extends AbstractViewModel<Project> {
         System.out.println(getModel());
         setModel(crudService().load(Project.class, getModel().getId()));
         this.projectsVM = (ProjectsViewModel) ZKUtil.getExecutionArg("viewModel");
-        this.node = (EntityTreeNode<SimpleEntityUuid>) ZKUtil.getExecutionArg("node");
+        this.node = (EntityTreeNode<SimpleEntity>) ZKUtil.getExecutionArg("node");
         this.role = (UserRole) ZKUtil.getExecutionArg("role");
 
     }

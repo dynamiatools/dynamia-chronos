@@ -7,14 +7,14 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.validation.constraints.NotNull;
 import tools.dynamia.domain.contraints.NotEmpty;
-import tools.dynamia.domain.jpa.SimpleEntityUuid;
+import tools.dynamia.domain.jpa.SimpleEntity;
 
 import java.time.Duration;
 
 @MappedSuperclass
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ChronosHttpRequest extends SimpleEntityUuid {
+public class ChronosHttpRequest extends SimpleEntity {
 
     @NotEmpty
     private String name;

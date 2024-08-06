@@ -12,7 +12,6 @@ import tools.dynamia.integration.Containers;
 import tools.dynamia.integration.sterotypes.Service;
 import tools.dynamia.modules.security.domain.User;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,9 +19,9 @@ import java.util.Map;
 @Service
 public class ProjectServiceImpl extends AbstractService implements ProjectService {
 
-    private SimpleCache<String, Project> cache = new SimpleCache<>();
-    private SimpleCache<String, List<Variable>> variablesCache = new SimpleCache<>();
-    private SimpleCache<String, List<Notificator>> notificatorsCache = new SimpleCache<>();
+    private SimpleCache<Long, Project> cache = new SimpleCache<>();
+    private SimpleCache<Long, List<Variable>> variablesCache = new SimpleCache<>();
+    private SimpleCache<Long, List<Notificator>> notificatorsCache = new SimpleCache<>();
 
 
     @Override
@@ -34,7 +33,7 @@ public class ProjectServiceImpl extends AbstractService implements ProjectServic
 
 
     @Override
-    public Project getById(String id) {
+    public Project getById(Long id) {
         return cache.getOrLoad(id, key -> crudService().find(Project.class, id));
     }
 
@@ -60,7 +59,7 @@ public class ProjectServiceImpl extends AbstractService implements ProjectServic
     }
 
     @Override
-    public NotificationSender findNotificationSender(String id) {
+    public NotificationSender findNotificationSender(Long id) {
         return Containers.get().findObject(NotificationSender.class, obj -> obj.getId().equals(id));
     }
 

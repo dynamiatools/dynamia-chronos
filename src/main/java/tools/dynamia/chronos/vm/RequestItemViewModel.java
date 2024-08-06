@@ -15,7 +15,7 @@ import tools.dynamia.chronos.services.ProjectService;
 import tools.dynamia.commons.StringPojoParser;
 import tools.dynamia.commons.logger.LoggingService;
 import tools.dynamia.commons.logger.SLF4JLoggingService;
-import tools.dynamia.domain.jpa.SimpleEntityUuid;
+import tools.dynamia.domain.jpa.SimpleEntity;
 import tools.dynamia.domain.util.LabelValue;
 import tools.dynamia.integration.Containers;
 import tools.dynamia.zk.AbstractViewModel;
@@ -36,7 +36,7 @@ public class RequestItemViewModel extends AbstractViewModel<RequestItem> {
     private List<LabelValue> parameters;
     private List<LabelValue> responseHeaders;
     private ProjectsViewModel projectsVM;
-    private EntityTreeNode<SimpleEntityUuid> node;
+    private EntityTreeNode<SimpleEntity> node;
     private UserRole role;
     private List<Variable> variables;
 
@@ -58,7 +58,7 @@ public class RequestItemViewModel extends AbstractViewModel<RequestItem> {
     protected void afterInitDefaults() {
         System.out.println(getModel());
         this.projectsVM = (ProjectsViewModel) ZKUtil.getExecutionArg("viewModel");
-        this.node = (EntityTreeNode<SimpleEntityUuid>) ZKUtil.getExecutionArg("node");
+        this.node = (EntityTreeNode<SimpleEntity>) ZKUtil.getExecutionArg("node");
         this.role = (UserRole) ZKUtil.getExecutionArg("role");
 
         reload();

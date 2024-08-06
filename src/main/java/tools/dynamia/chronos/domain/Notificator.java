@@ -6,20 +6,19 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import tools.dynamia.chronos.ProjectAware;
-import tools.dynamia.domain.jpa.SimpleEntityUuid;
+import tools.dynamia.domain.jpa.SimpleEntity;
 
 @Entity
 @Table(name = "crn_projects_notificators")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Notificator extends SimpleEntityUuid implements ProjectAware {
+public class Notificator extends SimpleEntity implements ProjectAware {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnore
     private Project project;
 
-    @NotNull
-    private String sender;
+    private Long sender;
 
     @Column(length = 1000)
     private String contact;
@@ -35,11 +34,11 @@ public class Notificator extends SimpleEntityUuid implements ProjectAware {
         this.project = project;
     }
 
-    public String getSender() {
+    public Long getSender() {
         return sender;
     }
 
-    public void setSender(String sender) {
+    public void setSender(Long sender) {
         this.sender = sender;
     }
 

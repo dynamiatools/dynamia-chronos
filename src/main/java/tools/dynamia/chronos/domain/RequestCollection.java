@@ -7,7 +7,7 @@ import jakarta.persistence.*;
 import tools.dynamia.chronos.HeadersProvider;
 import tools.dynamia.chronos.ProjectAware;
 import tools.dynamia.commons.StringPojoParser;
-import tools.dynamia.domain.jpa.SimpleEntityUuid;
+import tools.dynamia.domain.jpa.SimpleEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 @Table(name = "crn_collections")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class RequestCollection extends SimpleEntityUuid implements HeadersProvider, ProjectAware {
+public class RequestCollection extends SimpleEntity implements HeadersProvider, ProjectAware {
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)

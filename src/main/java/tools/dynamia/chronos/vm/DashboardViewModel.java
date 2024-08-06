@@ -3,15 +3,10 @@ package tools.dynamia.chronos.vm;
 import org.zkoss.bind.annotation.*;
 import org.zkoss.zk.ui.Component;
 import org.zkoss.zul.Center;
-import tools.dynamia.actions.FastAction;
-import tools.dynamia.chronos.ProjectAware;
 import tools.dynamia.chronos.domain.*;
 import tools.dynamia.chronos.services.CronJobsService;
 import tools.dynamia.domain.AbstractEntity;
 import tools.dynamia.domain.jpa.SimpleEntity;
-import tools.dynamia.domain.jpa.SimpleEntityUuid;
-import tools.dynamia.domain.util.DomainUtils;
-import tools.dynamia.zk.crud.CrudView;
 import tools.dynamia.zk.crud.ui.EntityTreeNode;
 import tools.dynamia.zk.crud.ui.LazyEntityTreeNode;
 import tools.dynamia.zk.viewers.ui.Viewer;
@@ -47,14 +42,14 @@ public class DashboardViewModel extends AbstractProjectsViewModel {
     }
 
     @Override
-    protected void loadMoreNodes(Project project, EntityTreeNode<SimpleEntityUuid> projectNode) {
+    protected void loadMoreNodes(Project project, EntityTreeNode<SimpleEntity> projectNode) {
         loadVariablesNode(project, projectNode);
         loadNotificators(project, projectNode);
 
     }
 
-    private void loadNotificators(Project project, EntityTreeNode<SimpleEntityUuid> projectNode) {
-        var notificatorsNode = new LazyEntityTreeNode<SimpleEntityUuid>("Notificators", "fa-bell");
+    private void loadNotificators(Project project, EntityTreeNode<SimpleEntity> projectNode) {
+        var notificatorsNode = new LazyEntityTreeNode<SimpleEntity>("Notificators", "fa-bell");
         notificatorsNode.setEntity(new Notificator());
         notificatorsNode.setLoader(node -> {
             var notificators = projectService.getNotificators(project);
@@ -75,8 +70,8 @@ public class DashboardViewModel extends AbstractProjectsViewModel {
         projectNode.addChild(notificatorsNode);
     }
 
-    private void loadVariablesNode(Project project, EntityTreeNode<SimpleEntityUuid> projectNode) {
-        var variablesNode = new LazyEntityTreeNode<SimpleEntityUuid>("Variables", "fa-hashtag");
+    private void loadVariablesNode(Project project, EntityTreeNode<SimpleEntity> projectNode) {
+        var variablesNode = new LazyEntityTreeNode<SimpleEntity>("Variables", "fa-hashtag");
         variablesNode.setEntity(new Variable());
         variablesNode.setLoader(node -> {
             var variables = projectService.getVariables(project);

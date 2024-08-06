@@ -17,7 +17,7 @@ Main schedule configurer
 @Service
 public class CronJobScheduler implements SchedulingConfigurer {
 
-    private SimpleCache<String, ScheduledTask> tasksCache = new SimpleCache<>();
+    private SimpleCache<Long, ScheduledTask> tasksCache = new SimpleCache<>();
     private LoggingService logger = new SLF4JLoggingService(CronJobScheduler.class);
 
     private final CronJobsService cronJobsService;
