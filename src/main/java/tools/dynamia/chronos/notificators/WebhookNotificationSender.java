@@ -40,7 +40,7 @@ public class WebhookNotificationSender implements NotificationSender {
 
     @Override
     public String getIcon() {
-        return "fab fa-web";
+        return "fa fa-globe";
     }
 
     @Override
@@ -56,7 +56,7 @@ public class WebhookNotificationSender implements NotificationSender {
         }
     }
 
-    private void sendMessage(String webhookURL, Object content) {
+    private void sendMessage(String webhookURL, CronJobLog content) {
         try {
 
 

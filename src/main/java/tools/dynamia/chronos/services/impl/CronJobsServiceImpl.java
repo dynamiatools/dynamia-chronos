@@ -56,7 +56,9 @@ public class CronJobsServiceImpl extends AbstractService implements CronJobsServ
                 message -> log(prefix + message));
 
         var log = executor.execute();
-
+        if (log instanceof CronJobLog cl) {
+            cl.setTest(testMode);
+        }
 
         crudService().executeWithinTransaction(() -> {
             crudService().increaseCounter(cronJob, "executionsCount");
