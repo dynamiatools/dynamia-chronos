@@ -6,10 +6,15 @@ import tools.dynamia.chronos.domain.CronJobLog;
 import tools.dynamia.chronos.services.CronJobsService;
 import tools.dynamia.crud.AbstractCrudAction;
 import tools.dynamia.crud.CrudActionEvent;
+import tools.dynamia.integration.Containers;
 import tools.dynamia.zk.viewers.ui.Viewer;
 
 @InstallAction
 public class ViewCronJobLogsAction extends AbstractCrudAction {
+
+    public static ViewCronJobLogsAction get() {
+        return Containers.get().findObject(ViewCronJobLogsAction.class);
+    }
 
     private final CronJobsService cronJobsService;
 
@@ -23,10 +28,14 @@ public class ViewCronJobLogsAction extends AbstractCrudAction {
     @Override
     public void actionPerformed(CrudActionEvent evt) {
         if (evt.getData() instanceof CronJob cronJob) {
-            var logs = cronJobsService.getLatestLogs(cronJob);
-            var dialog = Viewer.showDialog("Logs - " + cronJob, "table", CronJobLog.class, logs);
-            dialog.setHeight("90%");
-            dialog.setWidth("90%");
+            viewLogs(cronJob);
         }
+    }
+
+    public void viewLogs(CronJob cronJob) {
+        var logs = cronJobsService.getLatestLogs(cronJob);
+        var dialog = Viewer.showDialog("Logs - " + cronJob, "table", CronJobLog.class, logs);
+        dialog.setHeight("90%");
+        dialog.setWidth("90%");
     }
 }

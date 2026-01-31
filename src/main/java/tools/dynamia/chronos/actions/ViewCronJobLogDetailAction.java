@@ -20,9 +20,13 @@ public class ViewCronJobLogDetailAction extends TableViewRowAction {
     @Override
     public void actionPerformed(ActionEvent evt) {
         if (evt.getData() instanceof CronJobLog log) {
-            Viewer viewer = new Viewer("form", CronJobLog.class, log);
-            viewer.setReadonly(true);
-            viewer.showModal("Log # " + log.getId());
+            viewLogs(log);
         }
+    }
+
+    public static void viewLogs(CronJobLog log) {
+        Viewer viewer = new Viewer("form", CronJobLog.class, log);
+        viewer.setReadonly(true);
+        viewer.showModal("Log # " + log.getId());
     }
 }

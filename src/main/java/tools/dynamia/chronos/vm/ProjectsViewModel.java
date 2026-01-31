@@ -6,6 +6,9 @@ import org.zkoss.zul.Fileupload;
 import org.zkoss.zul.Tab;
 import org.zkoss.zul.Tabbox;
 import org.zkoss.zul.Tabpanel;
+import tools.dynamia.actions.FastAction;
+import tools.dynamia.chronos.actions.TestCronJobAction;
+import tools.dynamia.chronos.actions.ViewCronJobLogsAction;
 import tools.dynamia.chronos.domain.*;
 import tools.dynamia.domain.AbstractEntity;
 import tools.dynamia.domain.CrudServiceAware;
@@ -14,8 +17,10 @@ import tools.dynamia.io.IOUtils;
 import tools.dynamia.modules.security.CurrentUser;
 import tools.dynamia.navigation.Page;
 import tools.dynamia.ui.UIMessages;
+import tools.dynamia.zk.crud.ui.EntityTreeModel;
 import tools.dynamia.zk.crud.ui.EntityTreeNode;
 import tools.dynamia.zk.ui.Import;
+import tools.dynamia.zk.util.ZKBindingUtil;
 import tools.dynamia.zk.util.ZKUtil;
 import tools.dynamia.zk.viewers.ui.Viewer;
 
@@ -72,12 +77,14 @@ public class ProjectsViewModel extends AbstractProjectsViewModel implements Crud
                 userRole = role;
             }
 
+            getSelectedNode().setModel((EntityTreeModel<SimpleEntity>) getTreeModel());
+
             if (getSelectedNode().getEntity() instanceof AbstractEntity<?> entity && entity.getId() != null) {
                 switch (entity) {
-                    case Project project -> showProject(project, userRole);
-                    case CronJob cronJob -> showCronJob(cronJob, userRole);
-                    case RequestCollection collection -> showRequestCollection(collection, userRole);
-                    case RequestItem requestItem -> showRequestItem(requestItem, userRole);
+                    case Project project -> showProject(project, userRole, getSelectedNode());
+                    case CronJob cronJob -> showCronJob(cronJob, userRole, getSelectedNode());
+                    case RequestCollection collection -> showRequestCollection(collection, userRole, getSelectedNode());
+                    case RequestItem requestItem -> showRequestItem(requestItem, userRole, getSelectedNode());
                     default -> System.out.println("Something else selected");
                 }
             }
@@ -111,7 +118,7 @@ public class ProjectsViewModel extends AbstractProjectsViewModel implements Crud
     }
 
 
-    private void showProject(Project project, UserRole userRole) {
+    private void showProject(Project project, UserRole userRole, EntityTreeNode<SimpleEntity> selectedNode) {
         Import content = new Import();
         content.setSrc("classpath:/zk/pages/project.zul");
         content.addArg("entity", project);
@@ -125,13 +132,23 @@ public class ProjectsViewModel extends AbstractProjectsViewModel implements Crud
         content.addArg("panel", panel);
     }
 
-    private void showCronJob(CronJob cronJob, UserRole userRole) {
+    private void showCronJob(CronJob cronJob, UserRole userRole, EntityTreeNode<SimpleEntity> selectedNode) {
         Viewer viewer = new Viewer("form", CronJob.class, cronJob);
         viewer.setReadonly(userRole == UserRole.Reader);
+
+        viewer.addAction(new FastAction("Test").type("primary")
+                .onActionPerfomed(evt -> TestCronJobAction.get().test(cronJob, log -> {
+                    var job = crudService().load(CronJob.class, cronJob.getId());
+                    selectedNode.setEntity(job);
+                    ZKBindingUtil.postNotifyChange(selectedNode);
+                })));
+        viewer.addAction(new FastAction("Logs")
+                .onActionPerfomed(evt -> ViewCronJobLogsAction.get().viewLogs(cronJob)));
+
         createOrSelectPanel(cronJob, cronJob.getName(), viewer);
     }
 
-    private void showRequestCollection(RequestCollection collection, UserRole userRole) {
+    private void showRequestCollection(RequestCollection collection, UserRole userRole, EntityTreeNode<SimpleEntity> selectedNode) {
         Import content = new Import();
         content.setSrc("classpath:/zk/pages/collection.zul");
         content.addArg("entity", collection);
@@ -145,7 +162,7 @@ public class ProjectsViewModel extends AbstractProjectsViewModel implements Crud
         content.addArg("panel", panel);
     }
 
-    private void showRequestItem(RequestItem requestItem, UserRole userRole) {
+    private void showRequestItem(RequestItem requestItem, UserRole userRole, EntityTreeNode<SimpleEntity> selectedNode) {
         Import content = new Import();
         content.setSrc("classpath:/zk/pages/request.zul");
         content.addArg("entity", requestItem);

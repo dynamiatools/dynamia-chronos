@@ -13,7 +13,7 @@ fields:
     params:
       converter: converters.LocalDateTime
       header:
-        width: 160px;
+        width: 210px;
 
   duration:
     params:

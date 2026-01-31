@@ -57,6 +57,7 @@ public class CronJobsServiceImpl extends AbstractService implements CronJobsServ
 
         var log = executor.execute();
 
+
         crudService().executeWithinTransaction(() -> {
             crudService().increaseCounter(cronJob, "executionsCount");
             crudService().batchUpdate(CronJob.class,
