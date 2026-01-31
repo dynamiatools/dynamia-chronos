@@ -13,7 +13,7 @@ fields:
       converter: converters.Mustache
       sclass: vars
       header:
-        width: 300px
+        width: 400px
   cronExpression:
     params:
       sclass: vars

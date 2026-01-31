@@ -1,6 +1,6 @@
 package tools.dynamia.chronos.services.impl;
 
-import tools.dynamia.chronos.CronJobExecutor;
+import tools.dynamia.chronos.CronJobHttpRequestExecutor;
 import tools.dynamia.chronos.domain.CronJob;
 import tools.dynamia.chronos.domain.CronJobLog;
 import tools.dynamia.chronos.listeners.CronJobExecutionListener;
@@ -17,7 +17,6 @@ import java.util.List;
 
 @Service
 public class CronJobsServiceImpl extends AbstractService implements CronJobsService {
-
 
 
     private final ProjectService projectService;
@@ -38,12 +37,26 @@ public class CronJobsServiceImpl extends AbstractService implements CronJobsServ
 
     @Override
     public void execute(CronJob cronJob) {
+        execute(cronJob, false);
+    }
+
+
+    /**
+     * Execute a cron job
+     *
+     * @param cronJob  the cron job
+     * @param testMode if is in test mode
+     * @return the cron job log
+     */
+    private CronJobLog execute(CronJob cronJob, boolean testMode) {
         Containers.get().findObjects(CronJobExecutionListener.class).forEach(l -> l.beforeExecution(cronJob));
 
-        var executor = new CronJobExecutor(cronJob, projectService.getVariablesFor(cronJob),
-                message -> log("[JOB-" + cronJob.getId() + "] " + message));
+        var prefix = testMode ? "[TEST] " : "[JOB] ";
+        var executor = new CronJobHttpRequestExecutor(cronJob, projectService.getVariablesFor(cronJob),
+                message -> log(prefix + message));
 
         var log = executor.execute();
+
 
         crudService().executeWithinTransaction(() -> {
             crudService().increaseCounter(cronJob, "executionsCount");
@@ -56,14 +69,14 @@ public class CronJobsServiceImpl extends AbstractService implements CronJobsServ
             crudService().create(log);
         });
 
-        Containers.get().findObjects(CronJobExecutionListener.class).forEach(l -> l.afterExecution(cronJob, log));
+        Containers.get().findObjects(CronJobExecutionListener.class).forEach(l -> l.afterExecution(cronJob, (CronJobLog) log));
+
+        return (CronJobLog) log;
     }
 
     @Override
     public CronJobLog test(CronJob cronJob) {
-        var executor = new CronJobExecutor(cronJob, projectService.getVariablesFor(cronJob),
-                message -> log("[TEST JOB-" + cronJob.getId() + "] " + message));
-        return executor.execute();
+        return execute(cronJob, true);
     }
 
     @Override

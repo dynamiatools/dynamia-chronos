@@ -52,7 +52,7 @@ public class CronJobScheduler implements SchedulingConfigurer {
         cancel(cronJob);
 
         if (cronJob.isActive()) {
-            logger.info("Scheduling cron job " + cronJob.getId() + " - " + cronJob.getName()+" with "+cronJob.getCronExpression());
+            logger.info("Scheduling cron job " + cronJob.getId() + " - " + cronJob.getName() + " with " + cronJob.getCronExpression());
             ScheduledTask scheduledTask = taskRegistrar.scheduleCronTask(new CronTask(
                     () -> cronJobsService.execute(cronJob)
                     , cronJob.getCronExpression()

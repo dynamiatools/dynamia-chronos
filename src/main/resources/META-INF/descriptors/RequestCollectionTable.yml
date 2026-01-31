@@ -1,0 +1,9 @@
+view: table
+beanClass: tools.dynamia.chronos.domain.RequestCollection
+autofields: false
+
+fields:
+  title:
+  description:
+  id:
+

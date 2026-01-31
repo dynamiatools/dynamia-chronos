@@ -1,0 +1,34 @@
+view: form
+beanClass: tools.dynamia.chronos.domain.RequestItem
+autofields: false
+
+fields:
+  name:
+    params:
+      span: 4
+  httpMethod:
+    label: Method
+  serverHost:
+    label: URL
+    params:
+      span: 3
+  serverAuthorization:
+  serverTimeout:
+  contentType:
+  description:
+    params:
+      multiline: true
+      height: 80px
+      span: 4
+  requestBody:
+    label: Body
+    component: aceditor
+    params:
+      multiline: true
+      height: 400px
+      span: 4
+      mode: json
+
+
+layout:
+  columns: 4

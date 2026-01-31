@@ -8,4 +8,5 @@ fields:
     params:
       className: tools.dynamia.chronos.notificators.NotificationSender
   contact:
+    label: Contact / URL
   active:

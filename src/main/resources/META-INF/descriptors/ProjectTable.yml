@@ -5,3 +5,4 @@ autofields: false
 fields:
   name:
   description:
+  id:

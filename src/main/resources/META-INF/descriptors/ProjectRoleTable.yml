@@ -1,0 +1,7 @@
+view: table
+beanClass: tools.dynamia.chronos.domain.ProjectRole
+autofields: false
+
+fields:
+  user:
+  role:

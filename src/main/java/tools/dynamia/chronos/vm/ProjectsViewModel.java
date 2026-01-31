@@ -1,0 +1,304 @@
+package tools.dynamia.chronos.vm;
+
+import org.zkoss.bind.annotation.*;
+import org.zkoss.zk.ui.Component;
+import org.zkoss.zul.Fileupload;
+import org.zkoss.zul.Tab;
+import org.zkoss.zul.Tabbox;
+import org.zkoss.zul.Tabpanel;
+import tools.dynamia.actions.FastAction;
+import tools.dynamia.chronos.actions.TestCronJobAction;
+import tools.dynamia.chronos.actions.ViewCronJobLogsAction;
+import tools.dynamia.chronos.domain.*;
+import tools.dynamia.domain.AbstractEntity;
+import tools.dynamia.domain.CrudServiceAware;
+import tools.dynamia.domain.jpa.SimpleEntity;
+import tools.dynamia.io.IOUtils;
+import tools.dynamia.modules.security.CurrentUser;
+import tools.dynamia.navigation.Page;
+import tools.dynamia.ui.UIMessages;
+import tools.dynamia.zk.crud.ui.EntityTreeModel;
+import tools.dynamia.zk.crud.ui.EntityTreeNode;
+import tools.dynamia.zk.ui.Import;
+import tools.dynamia.zk.util.ZKBindingUtil;
+import tools.dynamia.zk.util.ZKUtil;
+import tools.dynamia.zk.viewers.ui.Viewer;
+
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
+public class ProjectsViewModel extends AbstractProjectsViewModel implements CrudServiceAware {
+
+    private Component view;
+    private Tabbox tabbox;
+
+
+    @Init
+    public void init() {
+        var project = (Project) ZKUtil.getExecutionArg("project");
+        if (project == null) {
+            project = (Project) Page.getCurrent().getAttribute("project");
+        }
+        if (project != null) {
+            projects = List.of(project);
+            var role = projectService.findProjectRole(project, CurrentUser.get().getUser());
+            if (role == null) {
+                role = new ProjectRole();
+                role.setProject(project);
+                role.setUser(CurrentUser.get().getUser());
+                role.setRole(UserRole.Reader);
+            }
+            roles = List.of(role);
+            loadModel();
+        } else {
+            super.init();
+        }
+    }
+
+    @Override
+    protected void loadMoreNodes(Project project, EntityTreeNode<SimpleEntity> projectNode) {
+
+    }
+
+
+    @AfterCompose
+    public void afterCompose(@ContextParam(ContextType.VIEW) Component view) {
+        this.view = view;
+        this.tabbox = (Tabbox) view.query("tabbox");
+    }
+
+    @Override
+    @Command
+    public void nodeSelected() {
+        if (getSelectedNode() != null) {
+            UserRole userRole = UserRole.Reader;
+            if (getSelectedNode().getRole() instanceof UserRole role) {
+                userRole = role;
+            }
+
+            getSelectedNode().setModel((EntityTreeModel<SimpleEntity>) getTreeModel());
+
+            if (getSelectedNode().getEntity() instanceof AbstractEntity<?> entity && entity.getId() != null) {
+                switch (entity) {
+                    case Project project -> showProject(project, userRole, getSelectedNode());
+                    case CronJob cronJob -> showCronJob(cronJob, userRole, getSelectedNode());
+                    case RequestCollection collection -> showRequestCollection(collection, userRole, getSelectedNode());
+                    case RequestItem requestItem -> showRequestItem(requestItem, userRole, getSelectedNode());
+                    default -> System.out.println("Something else selected");
+                }
+            }
+
+            notifyChanges();
+
+        }
+
+    }
+
+    private Tabpanel createOrSelectPanel(SimpleEntity entity, String label, Component content) {
+
+        var tabpanel = (Tabpanel) tabbox.getTabpanels()
+                .getChildren()
+                .stream()
+                .filter(tp -> entity.equals(tp.getAttribute("entity")))
+                .findFirst().orElseGet(() -> {
+
+                    Tab tab = new Tab(label);
+                    tab.setClosable(true);
+                    tabbox.getTabs().appendChild(tab);
+                    Tabpanel tabPanel = new Tabpanel();
+                    tabPanel.setAttribute("entity", entity);
+                    tabPanel.appendChild(content);
+                    tabbox.getTabpanels().appendChild(tabPanel);
+                    return tabPanel;
+                });
+
+        tabpanel.getLinkedTab().setSelected(true);
+        return tabpanel;
+    }
+
+
+    private void showProject(Project project, UserRole userRole, EntityTreeNode<SimpleEntity> selectedNode) {
+        Import content = new Import();
+        content.setSrc("classpath:/zk/pages/project.zul");
+        content.addArg("entity", project);
+        content.addArg("userRole", userRole);
+        content.addArg("node", getSelectedNode());
+        content.addArg("viewModel", this);
+        content.setVflex("1");
+        var panel = createOrSelectPanel(project, project.getName(), content);
+        panel.setHflex("1");
+
+        content.addArg("panel", panel);
+    }
+
+    private void showCronJob(CronJob cronJob, UserRole userRole, EntityTreeNode<SimpleEntity> selectedNode) {
+        Viewer viewer = new Viewer("form", CronJob.class, cronJob);
+        viewer.setReadonly(userRole == UserRole.Reader);
+
+        viewer.addAction(new FastAction("Test").type("primary")
+                .onActionPerfomed(evt -> TestCronJobAction.get().test(cronJob, log -> {
+                    var job = crudService().load(CronJob.class, cronJob.getId());
+                    selectedNode.setEntity(job);
+                    ZKBindingUtil.postNotifyChange(selectedNode);
+                })));
+        viewer.addAction(new FastAction("Logs")
+                .onActionPerfomed(evt -> ViewCronJobLogsAction.get().viewLogs(cronJob)));
+
+        createOrSelectPanel(cronJob, cronJob.getName(), viewer);
+    }
+
+    private void showRequestCollection(RequestCollection collection, UserRole userRole, EntityTreeNode<SimpleEntity> selectedNode) {
+        Import content = new Import();
+        content.setSrc("classpath:/zk/pages/collection.zul");
+        content.addArg("entity", collection);
+        content.addArg("userRole", userRole);
+        content.addArg("node", getSelectedNode());
+        content.addArg("viewModel", this);
+        content.setVflex("1");
+        var panel = createOrSelectPanel(collection, collection.getTitle(), content);
+        panel.setHflex("1");
+
+        content.addArg("panel", panel);
+    }
+
+    private void showRequestItem(RequestItem requestItem, UserRole userRole, EntityTreeNode<SimpleEntity> selectedNode) {
+        Import content = new Import();
+        content.setSrc("classpath:/zk/pages/request.zul");
+        content.addArg("entity", requestItem);
+        content.addArg("userRole", userRole);
+        content.addArg("node", getSelectedNode());
+        content.addArg("viewModel", this);
+        content.setVflex("1");
+        var panel = createOrSelectPanel(requestItem, requestItem.getHttpMethod() + " " + requestItem.getName(), content);
+        panel.setHflex("1");
+
+        content.addArg("panel", panel);
+    }
+
+
+    @Command
+    public void addCronJob() {
+        if (getSelectedNode() != null) {
+            var entity = getSelectedNode().getEntity();
+            CronJob cronjob = new CronJob();
+            cronjob.setName("New Cronjob");
+
+            Project project = (Project) getSelectedNode().getSource();
+            if (entity instanceof CronJob parent && parent.getId() != null) {
+                if (project == null) project = parent.getProject();
+                cronjob.setProject(project);
+            }
+
+            Project finalProject = project;
+            UIMessages.showInput("Cron job Name", String.class, name -> {
+                cronjob.setName(name);
+                cronjob.setCronExpression("@hourly");
+                cronjob.setActive(false);
+                cronjob.setServerHost("127.0.0.1");
+                crudService().executeWithinTransaction(() -> crudService().save(cronjob));
+                var node = buildNode(cronjob, finalProject);
+                getSelectedNode().addChild(node);
+                getSelectedNode().open();
+                notifyChanges();
+            });
+
+        }
+    }
+
+    @Command
+    public void addCollection() {
+        if (getSelectedNode() != null) {
+            var entity = getSelectedNode().getEntity();
+            RequestCollection collection = new RequestCollection();
+            collection.setTitle("New Collection");
+
+            Project project = (Project) getSelectedNode().getSource();
+            if (entity instanceof RequestCollection parent) {
+                if (parent.getId() == null && parent.getProject() != null) {
+                    collection.setProject(parent.getProject());
+                    project = parent.getProject();
+                } else {
+                    collection.setParentCollection(parent);
+                }
+            }
+
+            Project finalProject = project;
+            UIMessages.showInput("Name", String.class, s -> {
+                collection.setTitle(s);
+                crudService().executeWithinTransaction(() -> crudService().save(collection));
+                var node = buildNode(collection, finalProject);
+                getSelectedNode().addChild(node);
+                getSelectedNode().open();
+                notifyChanges();
+            });
+
+        }
+    }
+
+    @Command
+    public void deleteCollection() {
+        if (getSelectedNode().getEntity() instanceof RequestCollection collection && collection.getId() != null) {
+            UIMessages.showQuestion("Are you sure to delete " + collection + "? All request and subfolders will be deleted", () -> {
+                crudService().executeWithinTransaction(() -> crudService().delete(RequestCollection.class, collection.getId()));
+                getSelectedNode().getParent().getChildren().remove(getSelectedNode());
+                notifyChanges();
+            });
+        }
+    }
+
+    @Command
+    public void importCollection() {
+        Fileupload.get(event -> {
+            var media = event.getMedia();
+            if (media.getName().endsWith(".json")) {
+                InputStream stream = media.getStreamData();
+
+                String content = IOUtils.readContent(stream, StandardCharsets.UTF_8);
+
+                RequestCollection collection = projectService.importCollectionFromPostman(content);
+                Project project = (Project) getSelectedNode().getSource();
+                collection.setProject(project);
+                crudService().executeWithinTransaction(() -> crudService().save(collection));
+                var node = buildNode(collection, project);
+                getSelectedNode().addChild(node);
+                getSelectedNode().open();
+                notifyChanges();
+
+                UIMessages.showMessage("Collection imported");
+            }
+        });
+    }
+
+
+    @Command
+    public void addRequest() {
+        if (getSelectedNode() != null) {
+            var entity = getSelectedNode().getEntity();
+            RequestItem item = new RequestItem();
+            item.setName("New Request");
+            item.setServerHost("https://jsonplaceholder.typicode.com/todos");
+
+            Project project = (Project) getSelectedNode().getSource();
+            if (entity instanceof RequestCollection parent && parent.getId() != null) {
+                if (project == null) project = parent.getProject();
+
+                item.setCollection(parent);
+
+            }
+
+            Project finalProject = project;
+            UIMessages.showInput("Request Name", String.class, s -> {
+                item.setName(s);
+                crudService().executeWithinTransaction(() -> crudService().save(item));
+                var node = buildNode(item, finalProject);
+                getSelectedNode().addChild(node);
+                getSelectedNode().open();
+                notifyChanges();
+            });
+
+        }
+    }
+
+
+}
