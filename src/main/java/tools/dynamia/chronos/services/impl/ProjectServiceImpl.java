@@ -59,7 +59,7 @@ public class ProjectServiceImpl extends AbstractService implements ProjectServic
     }
 
     @Override
-    public NotificationSender findNotificationSender(Long id) {
+    public NotificationSender findNotificationSender(String id) {
         return Containers.get().findObject(NotificationSender.class, obj -> obj.getId().equals(id));
     }
 

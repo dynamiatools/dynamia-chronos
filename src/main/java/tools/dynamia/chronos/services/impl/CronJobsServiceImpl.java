@@ -37,10 +37,23 @@ public class CronJobsServiceImpl extends AbstractService implements CronJobsServ
 
     @Override
     public void execute(CronJob cronJob) {
+        execute(cronJob, false);
+    }
+
+
+    /**
+     * Execute a cron job
+     *
+     * @param cronJob  the cron job
+     * @param testMode if is in test mode
+     * @return the cron job log
+     */
+    private CronJobLog execute(CronJob cronJob, boolean testMode) {
         Containers.get().findObjects(CronJobExecutionListener.class).forEach(l -> l.beforeExecution(cronJob));
 
+        var prefix = testMode ? "[TEST] " : "[JOB] ";
         var executor = new CronJobHttpRequestExecutor(cronJob, projectService.getVariablesFor(cronJob),
-                message -> log("[JOB-" + cronJob.getId() + "] " + message));
+                message -> log(prefix + message));
 
         var log = executor.execute();
 
@@ -56,13 +69,13 @@ public class CronJobsServiceImpl extends AbstractService implements CronJobsServ
         });
 
         Containers.get().findObjects(CronJobExecutionListener.class).forEach(l -> l.afterExecution(cronJob, (CronJobLog) log));
+
+        return (CronJobLog) log;
     }
 
     @Override
     public CronJobLog test(CronJob cronJob) {
-        var executor = new CronJobHttpRequestExecutor(cronJob, projectService.getVariablesFor(cronJob),
-                message -> log("[TEST JOB-" + cronJob.getId() + "] " + message));
-        return (CronJobLog) executor.execute();
+        return execute(cronJob, true);
     }
 
     @Override

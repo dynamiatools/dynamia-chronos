@@ -5,12 +5,12 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.1</version>
+        <version>4.0.2</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>tools.dynamia</groupId>
     <artifactId>dynamia-chronos</artifactId>
-    <version>0.0.3</version>
+    <version>1.0.0</version>
     <name>dynamia-chronos</name>
     <description>Open source cron job scheduler builded using spring boot and dynamia.tools</description>
 
@@ -39,11 +39,8 @@
     </scm>
 
     <properties>
-        <java.version>21</java.version>
-        <dynamiatools.version>5.2.0</dynamiatools.version>
-        <email.version>3.1.1</email.version>
-        <security.version>1.0.1</security.version>
-        <entityfiles.version>7.1.1</entityfiles.version>
+        <java.version>25</java.version>
+        <dynamiatools.version>26.1</dynamiatools.version>
     </properties>
 
     <dependencies>
@@ -104,17 +101,17 @@
         <dependency>
             <groupId>tools.dynamia.modules</groupId>
             <artifactId>tools.dynamia.modules.email.ui</artifactId>
-            <version>${email.version}</version>
+            <version>${dynamiatools.version}</version>
         </dependency>
         <dependency>
             <groupId>tools.dynamia.modules</groupId>
             <artifactId>tools.dynamia.modules.security.ui</artifactId>
-            <version>${security.version}</version>
+            <version>${dynamiatools.version}</version>
         </dependency>
         <dependency>
             <groupId>tools.dynamia.modules</groupId>
             <artifactId>tools.dynamia.modules.entityfiles.ui</artifactId>
-            <version>${entityfiles.version}</version>
+            <version>${dynamiatools.version}</version>
         </dependency>
 
     </dependencies>

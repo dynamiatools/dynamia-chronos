@@ -24,7 +24,7 @@ public interface ProjectService {
 
     List<Notificator> getNotificators(Project project);
 
-    NotificationSender findNotificationSender(Long id);
+    NotificationSender findNotificationSender(String id);
 
 
     List<Project> findAll();

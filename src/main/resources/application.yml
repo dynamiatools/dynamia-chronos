@@ -1,12 +1,12 @@
 dynamia:
   app:
-    name: Dynamia Chronos (beta)
+    name: Dynamia Chronos
     author: @project.organization.name@
     version: @project.version@
     template: Dynamical
-    default-skin: dracula
+    default-skin: Dynamia
     base-package: tools.dynamia
-    default-logo: /static/chronos-logo-light.png
+    default-logo: /static/chronos-logo.png
     default-icon: /static/chronos-icon.png
 
 

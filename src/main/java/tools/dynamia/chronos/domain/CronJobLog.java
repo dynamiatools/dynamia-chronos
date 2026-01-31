@@ -33,6 +33,7 @@ public class CronJobLog extends ChronosHttpResponse {
     @Column(length = 1000)
     private String details;
     private String serverHost;
+    private boolean test;
 
     public CronJobLog() {
         setStartDate(LocalDateTime.now());
@@ -108,5 +109,13 @@ public class CronJobLog extends ChronosHttpResponse {
 
     public void setServerHost(String serverHost) {
         this.serverHost = serverHost;
+    }
+
+    public boolean isTest() {
+        return test;
+    }
+
+    public void setTest(boolean test) {
+        this.test = test;
     }
 }

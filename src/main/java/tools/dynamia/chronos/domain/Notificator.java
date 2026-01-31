@@ -18,7 +18,7 @@ public class Notificator extends SimpleEntity implements ProjectAware {
     @JsonIgnore
     private Project project;
 
-    private Long sender;
+    private String sender;
 
     @Column(length = 1000)
     private String contact;
@@ -34,11 +34,11 @@ public class Notificator extends SimpleEntity implements ProjectAware {
         this.project = project;
     }
 
-    public Long getSender() {
+    public String getSender() {
         return sender;
     }
 
-    public void setSender(Long sender) {
+    public void setSender(String sender) {
         this.sender = sender;
     }
 

@@ -5,4 +5,5 @@ autofields: false
 fields:
   sender:
   contact:
+    label: Contact / URL
   active:
