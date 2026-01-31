@@ -4,9 +4,9 @@ dynamia:
     author: @project.organization.name@
     version: @project.version@
     template: Dynamical
-    default-skin: black
+    default-skin: dracula
     base-package: tools.dynamia
-    default-logo: /static/chronos-logo.png
+    default-logo: /static/chronos-logo-light.png
     default-icon: /static/chronos-icon.png
 
 

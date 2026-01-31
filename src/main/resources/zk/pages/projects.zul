@@ -1,0 +1,52 @@
+<zk>
+    <style>
+        .projects .z-treecell {
+            border: none;
+        }
+        .projects .z-treecell-content{
+            padding: 2px 2px;
+        }
+    </style>
+
+    <div viewModel="@id('vm') @init('tools.dynamia.chronos.vm.ProjectsViewModel')" vflex="1" sclass="projects">
+
+        <borderlayout sclass="dashboard" vflex="1">
+
+
+            <west width="400px" splittable="true">
+                <tree model="@load(vm.treeModel)" itemRenderer="tools.dynamia.zk.crud.ui.EntityTreeItemRenderer"
+                      onSelect="@command('nodeSelected')" selectedItem="@bind(vm.selectedNode)"
+                      vflex="1"/>
+            </west>
+
+            <center>
+                <tabbox vflex="1" hflex="1" id="content-area">
+                    <tabs/>
+                    <tabpanels vflex="1"/>
+                </tabbox>
+            </center>
+        </borderlayout>
+
+        <menupopup id="cronjobs-menu">
+            <menuitem label="Add Cron Job" iconSclass="z-icon-check" onClick="@command('addCronJob')"/>
+
+        </menupopup>
+
+        <menupopup id="projects-menu">
+            <menuitem label="Roles" iconSclass="z-icon-check" onClick="@command('addCronJob')"/>
+
+        </menupopup>
+
+        <menupopup id="collections-menu">
+            <menuitem label="Add Folder" iconSclass="z-icon-folder" onClick="@command('addCollection')"/>
+            <menuitem label="Import" iconSclass="z-icon-up-arrow" onClick="@command('importCollection')"/>
+        </menupopup>
+
+        <menupopup id="collection-menu">
+            <menuitem label="Add Folder" iconSclass="z-icon-folder" onClick="@command('addCollection')"/>
+            <menuitem label="Add Request" iconSclass="z-icon-chevron-right" onClick="@command('addRequest')"/>
+            <menuitem label="Delete" sclass="text-danger" onClick="@command('deleteCollection')" style="color: red"/>
+        </menupopup>
+
+    </div>
+</zk>

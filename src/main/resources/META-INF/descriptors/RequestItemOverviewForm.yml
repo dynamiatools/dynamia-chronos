@@ -1,0 +1,25 @@
+id: requestOverviewForm
+view: form
+
+
+fields:
+  name:
+    component: textbox
+    params:
+      span: 4
+  serverAuthorization:
+    component: textbox
+  contentType:
+    component: textbox
+  serverTimeout:
+    component: durationselector
+  description:
+    component: textbox
+    params:
+      multiline: true
+      height: 80px
+      span: 4
+
+
+layout:
+  columns: 4

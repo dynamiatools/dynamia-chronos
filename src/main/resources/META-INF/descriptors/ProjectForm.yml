@@ -16,7 +16,14 @@ fields:
     label: Cron Jobs
     component: crudview
 
+  collections:
+    label: Requests Collections
+    component: crudview
+
   notificators:
+    component: crudview
+
+  roles:
     component: crudview
 
 

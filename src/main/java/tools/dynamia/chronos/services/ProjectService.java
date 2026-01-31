@@ -1,10 +1,8 @@
 package tools.dynamia.chronos.services;
 
-import tools.dynamia.chronos.domain.CronJob;
-import tools.dynamia.chronos.domain.Notificator;
-import tools.dynamia.chronos.domain.Project;
-import tools.dynamia.chronos.domain.Variable;
+import tools.dynamia.chronos.domain.*;
 import tools.dynamia.chronos.notificators.NotificationSender;
+import tools.dynamia.modules.security.domain.User;
 
 import java.util.List;
 
@@ -26,8 +24,24 @@ public interface ProjectService {
 
     List<Notificator> getNotificators(Project project);
 
-    NotificationSender findNotificationSender(String id);
+    NotificationSender findNotificationSender(Long id);
 
 
     List<Project> findAll();
+
+    List<Project> findUserProjects(User user);
+
+    List<RequestCollection> getCollections(Project project);
+
+    List<RequestCollection> getCollections(RequestCollection collection);
+
+    List<RequestItem> getItems(RequestCollection collection);
+
+    List<ProjectRole> findProjectRoles(User user);
+
+    RequestCollection importCollectionFromPostman(String postmanJson);
+
+    List<Variable> getVariables(RequestCollection collection);
+
+    ProjectRole findProjectRole(Project project, User user);
 }

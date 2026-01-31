@@ -1,0 +1,68 @@
+<zk>
+    <div viewModel="@init('tools.dynamia.chronos.vm.ProjectViewModel') @id('vm')" vflex="1">
+
+        <tabbox vflex="1">
+            <toolbar>
+                <toolbarbutton label="Save Changes" onClick="@command('save')" sclass="text-success dt-font-bold"/>
+            </toolbar>
+            <tabs>
+                <tab label="Overview"/>
+                <tab label="Variables"/>
+                <tab label="Notificators"/>
+                <tab label="Roles"/>
+            </tabs>
+            <tabpanels>
+                <tabpanel>
+                    <div sclass="dt-flex dt-flex-column  dt-p-6">
+                        <textbox value="@bind(vm.model.name)" inplace="true" onBlur="@command('save')"
+                                 onOK="@command('save')" sclass="dt-text-2xl" constraint="no empty"/>
+                        <space height="30px"/>
+                        <textbox value="@bind(vm.model.description)" inplace="true" onBlur="@command('save')"
+                                 onOK="@command('save')" sclass="dt-text-lg" placeholder="no description"
+                                 multiline="true" height="400px"/>
+                    </div>
+                </tabpanel>
+                <tabpanel>
+                    <listbox model="@load(vm.model.variables)" hflex="1">
+                        <listhead sizable="true">
+                            <listheader label="Name"/>
+                            <listheader label="Value"/>
+                            <listheader width="60px" align="center"/>
+                        </listhead>
+                        <template name="model" var="h">
+                            <listitem>
+                                <listcell>
+                                    <textbox inplace="true" value="@bind(h.name)" hflex="1" placeholder="name"
+                                             onOK="@command('save')" constraint="no empty"/>
+                                </listcell>
+                                <listcell>
+                                    <textbox inplace="true" value="@bind(h.value)" hflex="1"
+                                             placeholder="value" onBlur="@command('save')" onOK="@command('save')"
+                                             constraint="no empty"/>
+                                </listcell>
+                                <listcell>
+                                    <a iconSclass="z-icon-remove" onClick="@command('removeVariable',variable=h)" sclass="text-danger"/>
+                                </listcell>
+                            </listitem>
+                        </template>
+                        <listfoot>
+                            <listfooter span="3">
+                                <a label="Add Variable" onClick="@command('addVariable')"/>
+                            </listfooter>
+                        </listfoot>
+                    </listbox>
+                </tabpanel>
+
+                <tabpanel>
+
+                </tabpanel>
+
+                <tabpanel>
+
+                </tabpanel>
+            </tabpanels>
+        </tabbox>
+    </div>
+
+
+</zk>

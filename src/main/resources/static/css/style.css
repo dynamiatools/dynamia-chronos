@@ -1,25 +1,96 @@
-.badge{
+.badge {
     margin-left: 3px;
 }
 
-.badge-failing{
+.badge-failing {
     background-color: #D50000;
     color: white;
 }
 
-.badge-ok{
+.badge-ok {
     background-color: #00C851;
     color: white;
 }
 
-.vars{
+.badge-get, .badge-head {
+    background-color: #00C851;
+    color: white;
+}
+
+.badge-post {
+    background-color: #d4860b;
+    color: white;
+}
+
+.badge-put {
+    background-color: #0a53be;
+    color: white;
+}
+
+.badge-delete {
+    background-color: #b70404;
+    color: white;
+}
+
+.badge-options {
+    background-color: #ab47bc;
+    color: white;
+}
+
+.vars {
     font-family: "Courier New", serif;
     font-weight: bold;
 }
 
-.vars b{
+.vars b {
     background: #eaeaea;
     color: #0a53be;
     padding: 3px;
     border-radius: 4px;
+}
+
+.http-method {
+    font-weight: bold;
+}
+
+.http-method-GET, .http-method-HEAD, input[value="GET"], input[value="HEAD"] {
+    color: #00C851;
+}
+
+.http-method-POST, input[value="POST"] {
+    color: #d4860b !important;
+}
+
+.http-method-PUT, input[value="PUT"] {
+    color: #0a53be;
+}
+
+.http-method-DELETE, input[value="DELETE"] {
+    color: #fb394b;
+}
+
+.http-method-OPTIONS, input[value="OPTIONS"] {
+    color: #ab47bc;
+}
+
+.text-danger .z-menuitem-text {
+    color: #fb394b;
+}
+
+
+/**
+Dark Mode: based in #282a36
+ */
+
+.sidebar-wrapper, .skin-black .bg-body {
+    background-color: #282a36 !important;
+}
+
+.skin-dracula  {
+    --dt-ascent-color: #ff5722ff !important;
+}
+
+
+.projects .badge{
+    margin-right: 5px;
 }

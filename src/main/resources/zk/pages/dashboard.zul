@@ -1,11 +1,5 @@
 <zk>
-    <style>
-        .dashboard .z-center-header,
-        .dashboard .z-west-header {
-            background: #0c5460;
-            color: whitesmoke;
-        }
-    </style>
+
 
     <borderlayout viewModel="@id('vm') @init('tools.dynamia.chronos.vm.DashboardViewModel')" sclass="dashboard">
 
@@ -34,7 +28,7 @@
 
         </north>
 
-        <west width="50%" title="Projects">
+        <west width="30%" title="Projects" splittable="true" collapsible="true" >
             <tree model="@load(vm.treeModel)" itemRenderer="tools.dynamia.zk.crud.ui.EntityTreeItemRenderer"
                   onSelect="@command('nodeSelected')" selectedItem="@bind(vm.selectedNode)"
                   vflex="1"/>

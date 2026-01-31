@@ -1,19 +1,27 @@
 package tools.dynamia.chronos.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import jakarta.persistence.*;
 import tools.dynamia.chronos.ProjectAware;
 import tools.dynamia.domain.contraints.NotEmpty;
 import tools.dynamia.domain.jpa.SimpleEntity;
 
 @Entity
 @Table(name = "crn_variables")
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Variable extends SimpleEntity implements ProjectAware {
+
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
     private Project project;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
+    private RequestCollection collection;
+
     @NotEmpty
     private String name;
     @Column(length = 1000, name = "var_value")
@@ -71,5 +79,13 @@ public class Variable extends SimpleEntity implements ProjectAware {
 
     public void setSecret(boolean secret) {
         this.secret = secret;
+    }
+
+    public RequestCollection getCollection() {
+        return collection;
+    }
+
+    public void setCollection(RequestCollection collection) {
+        this.collection = collection;
     }
 }

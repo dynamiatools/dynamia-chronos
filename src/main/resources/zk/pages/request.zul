@@ -1,0 +1,144 @@
+<zk>
+    <borderlayout viewModel="@init('tools.dynamia.chronos.vm.RequestItemViewModel') @id('vm')" vflex="1">
+        <north height="40%" splittable="true">
+            <div vflex="1">
+
+                <div sclass="dt-flex dt-flex-row dt-gap-1">
+                    <combobox model="@load(vm.methods)" selectedItem="@bind(vm.model.httpMethod)"
+                              sclass="form-zcontrol" width="150px" readonly="true" style="dt-font-bold">
+                        <template name="model" var="m">
+                            <comboitem label="@load(m)" sclass="http-method http-method-${m}"/>
+                        </template>
+                    </combobox>
+                    <textbox value="@bind(vm.model.serverHost)" zclass="form-control" onOK="@command('send')"/>
+                    <button label="Send" onClick="@command('send')" sclass="btn btn-primary"/>
+                    <button onClick="@command('reload')" sclass="btn btn-primary" iconSclass="z-icon-refresh"/>
+                </div>
+
+
+                <tabbox vflex="1">
+                    <toolbar>
+                        <toolbarbutton label="Save Changes" onClick="@command('save')"/>
+                    </toolbar>
+                    <tabs>
+                        <tab label="Overview"/>
+                        <tab label="Body"/>
+                        <tab label="Headers"/>
+                        <tab label="Parameters"/>
+                    </tabs>
+                    <tabpanels>
+                        <tabpanel>
+                            <viewer descriptorId="requestOverviewForm" value="@load(vm.model)"/>
+                        </tabpanel>
+                        <tabpanel>
+                            <aceditor value="@bind(vm.model.requestBody)" mode="json" vflex="1" theme="dracula"/>
+                        </tabpanel>
+
+                        <tabpanel>
+                            <listbox model="@load(vm.headers)" hflex="1">
+                                <listhead sizable="true">
+                                    <listheader label="Key"/>
+                                    <listheader label="Value"/>
+                                    <listheader width="60px" align="center"/>
+                                </listhead>
+                                <template name="model" var="h">
+                                    <listitem>
+                                        <listcell>
+                                            <textbox inplace="true" value="@bind(h.label)" hflex="1" placeholder="key"/>
+                                        </listcell>
+                                        <listcell>
+                                            <textbox inplace="true" value="@bind(h.value)" hflex="1"
+                                                     placeholder="value"/>
+                                        </listcell>
+                                        <listcell>
+                                            <a iconSclass="z-icon-remove" onClick="@command('removeHeader',header=h)"
+                                               sclass="text-danger"/>
+                                        </listcell>
+                                    </listitem>
+                                </template>
+                                <listfoot>
+                                    <listfooter span="3">
+                                        <a label="Add header" onClick="@command('addHeader')"/>
+                                    </listfooter>
+                                </listfoot>
+                            </listbox>
+                        </tabpanel>
+
+                        <tabpanel>
+                            <listbox model="@load(vm.parameters)" hflex="1">
+                                <listhead sizable="true">
+                                    <listheader label="Key"/>
+                                    <listheader label="Value"/>
+                                    <listheader width="60px" align="center"/>
+                                </listhead>
+                                <template name="model" var="p">
+                                    <listitem>
+                                        <listcell>
+                                            <textbox inplace="true" value="@bind(p.label)" hflex="1" placeholder="key"/>
+                                        </listcell>
+                                        <listcell>
+                                            <textbox inplace="true" value="@bind(p.value)" hflex="1"
+                                                     placeholder="value"/>
+                                        </listcell>
+                                        <listcell>
+                                            <a iconSclass="z-icon-remove"
+                                               onClick="@command('removeParameter',parameter=p)" sclass="text-danger"/>
+                                        </listcell>
+                                    </listitem>
+                                </template>
+                                <listfoot>
+                                    <listfooter span="3">
+                                        <a label="Add parameter" onClick="@command('addParameter')"/>
+                                    </listfooter>
+                                </listfoot>
+                            </listbox>
+                        </tabpanel>
+
+
+                    </tabpanels>
+                </tabbox>
+            </div>
+        </north>
+
+        <center>
+
+            <tabbox vflex="1">
+                <toolbar>
+                    <label value="Status:" sclass="dt-font-bold"/>
+                    <label value="@load(vm.response.status)"/>
+
+                    <label value="Time:" sclass="dt-font-bold"/>
+                    <label value="@load(vm.response.duration) @converter('tools.dynamia.zk.converters.Duration')"/>
+
+                    <label value="Size:" sclass="dt-font-bold"/>
+                    <label value="@load(vm.response.size)"/>
+                </toolbar>
+
+                <tabs>
+                    <tab label="Response"/>
+                    <tab label="Headers"/>
+                </tabs>
+                <tabpanels>
+                    <tabpanel>
+                        <aceditor value="@load(vm.response.response)" mode="json" vflex="1" theme="dracula"/>
+                    </tabpanel>
+                    <tabpanel>
+                        <listbox model="@load(vm.responseHeaders)" hflex="1">
+                            <listhead>
+                                <listheader label="Key"/>
+                                <listheader label="Value"/>
+                            </listhead>
+                            <template name="model" var="h">
+                                <listitem>
+                                    <listcell label="@bind(h.label)"/>
+                                    <listcell label="@bind(h.value)"/>
+                                </listitem>
+                            </template>
+                        </listbox>
+                    </tabpanel>
+                </tabpanels>
+            </tabbox>
+        </center>
+    </borderlayout>
+
+</zk>
