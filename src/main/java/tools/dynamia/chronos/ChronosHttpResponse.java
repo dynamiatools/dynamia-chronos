@@ -1,7 +1,11 @@
 package tools.dynamia.chronos;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonRawValue;
+import jakarta.persistence.Column;
+import jakarta.persistence.Lob;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.validation.constraints.NotNull;
 import tools.dynamia.domain.jpa.SimpleEntity;
@@ -17,10 +21,15 @@ public class ChronosHttpResponse extends SimpleEntity {
 
     private int statusCode;
     private String status;
+    @JsonRawValue
+    @Lob
+    @Column(columnDefinition = "longtext")
     private String response;
     @NotNull
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime startDate;
     @NotNull
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime endDate;
     @NotNull
     private Duration duration;

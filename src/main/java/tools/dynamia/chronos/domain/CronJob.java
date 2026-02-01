@@ -1,5 +1,6 @@
 package tools.dynamia.chronos.domain;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -29,7 +30,9 @@ public class CronJob extends ChronosHttpRequest implements ProjectAware {
 
     private boolean notifyFails = true;
     private boolean notifyExecutions = false;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime lastExecution;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt = LocalDateTime.now();
     private long executionsCount;
     private String status;
