@@ -46,25 +46,22 @@ public class WebhookNotificationSender implements NotificationSender {
     @Override
     @Async
     public void send(CronJob cronJob, CronJobLog log, Notificator notificator) {
-
-        if (cronJob.isNotifyExecutions() && log.isExecuted()) {
-            sendMessage(notificator.getContact(), log);
-        }
-
-        if (cronJob.isNotifyFails() && log.isFail()) {
-            sendMessage(notificator.getContact(), log);
-        }
+        sendMessage(notificator.getContact(), log);
     }
 
     private void sendMessage(String webhookURL, CronJobLog content) {
         try {
 
 
+            if(content.getResponse()==null || content.getResponse().isBlank()){
+                content.setResponse("\"empty\"");
+            }
             String message = StringPojoParser.convertPojoToJson(content);
 
 
-            logger.info("Sending notification to:  " + webhookURL);
+            logger.info("Sending webhook notification to:  " + webhookURL);
 
+            logger.info("CONTENT: \n\n"+message);
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(webhookURL))
                     .POST(HttpRequest.BodyPublishers.ofString(message))
@@ -72,9 +69,9 @@ public class WebhookNotificationSender implements NotificationSender {
                     .build();
 
             var response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-            logger.info("Slack Status: " + response.statusCode());
+            logger.info("Webhook Status: " + response.statusCode());
         } catch (Exception e) {
-            logger.error("Error sending slack notification", e);
+            logger.error("Error sending webhook notification", e);
 
         }
 
