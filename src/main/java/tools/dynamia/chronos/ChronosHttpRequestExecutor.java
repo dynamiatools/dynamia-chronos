@@ -73,8 +73,8 @@ public class ChronosHttpRequestExecutor {
 
                 response.setStatusCode(status.value());
                 response.setStatus(status.value() + " - " + status.getReasonPhrase());
-                response.setFail(status != HttpStatus.OK);
-                response.setExecuted(status == HttpStatus.OK);
+                response.setFail(!status.is2xxSuccessful());
+                response.setExecuted(status.is2xxSuccessful());
                 response.setResponse(internalResponse.body());
                 response.setEndDate(LocalDateTime.now());
                 response.setDuration(Duration.between(response.getStartDate(), response.getEndDate()));

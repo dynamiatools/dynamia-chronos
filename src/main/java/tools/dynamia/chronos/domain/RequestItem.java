@@ -42,6 +42,8 @@ public class RequestItem extends ChronosHttpRequest implements HeadersProvider, 
     public void setHeaders(Map<String, String> headers) {
         if (headers != null && !headers.isEmpty()) {
             this.headers = StringPojoParser.convertMapToJson(headers);
+        } else {
+            this.headers = null;
         }
     }
 
@@ -59,6 +61,8 @@ public class RequestItem extends ChronosHttpRequest implements HeadersProvider, 
     public void setParameters(Map<String, String> parameters) {
         if (parameters != null && !parameters.isEmpty()) {
             this.parameters = StringPojoParser.convertMapToJson(parameters);
+        } else {
+            this.parameters = null;
         }
     }
 

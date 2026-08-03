@@ -15,6 +15,7 @@ import tools.dynamia.integration.Containers;
 import tools.dynamia.integration.sterotypes.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -80,11 +81,11 @@ public class CronJobsServiceImpl extends AbstractService implements CronJobsServ
         } catch (Exception e) {
             log(prefix + "Error executing cron job: " + e.getMessage());
             CronJobLog errorLog = new CronJobLog(cronJob, false, true);
-            errorLog.setResponse(StringPojoParser.convertMapToJson(Map.of(
-                    "exception", e.getClass().getSimpleName(),
-                    "message", e.getMessage(),
-                    "cause", e.getCause()))
-            );
+            Map<String, String> errorDetails = new HashMap<>();
+            errorDetails.put("exception", e.getClass().getSimpleName());
+            errorDetails.put("message", e.getMessage());
+            errorDetails.put("cause", e.getCause() != null ? e.getCause().toString() : null);
+            errorLog.setResponse(StringPojoParser.convertMapToJson(errorDetails));
             errorLog.setTest(testMode);
             errorLog.setDetails("Error executing cron job: " + e.getMessage());
             errorLog.setStatus("ERROR");

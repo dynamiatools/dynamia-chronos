@@ -85,6 +85,7 @@ public abstract class AbstractProjectsViewModel {
 
         var cronJobsNode = new LazyEntityTreeNode<SimpleEntity>("Cron jobs", "fa-tasks");
         cronJobsNode.setEntity(new CronJob(project));
+        cronJobsNode.setSource(project);
         cronJobsNode.setLoader(node -> {
             var cronjobs = projectService.getCronJobs(project);
             cronjobs.forEach(cronJob -> {

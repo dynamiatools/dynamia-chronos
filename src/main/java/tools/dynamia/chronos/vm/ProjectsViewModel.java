@@ -185,10 +185,10 @@ public class ProjectsViewModel extends AbstractProjectsViewModel implements Crud
             cronjob.setName("New Cronjob");
 
             Project project = (Project) getSelectedNode().getSource();
-            if (entity instanceof CronJob parent && parent.getId() != null) {
-                if (project == null) project = parent.getProject();
-                cronjob.setProject(project);
+            if (entity instanceof CronJob parent && parent.getId() == null && parent.getProject() != null) {
+                project = parent.getProject();
             }
+            cronjob.setProject(project);
 
             Project finalProject = project;
             UIMessages.showInput("Cron job Name", String.class, name -> {
