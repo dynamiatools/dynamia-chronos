@@ -1,18 +1,33 @@
-# Dynamia Chronos
+<div align="center">
 
-Open source cron job scheduler and HTTP request runner, built with Spring Boot and [Dynamia Tools](https://www.dynamiasoluciones.com).
+# ⏱️ Dynamia Chronos
 
-Chronos lets you organize **Projects** containing scheduled HTTP cron jobs, Postman-like request collections, shared variables, and multi-channel notifications (email, SMS, Slack, generic webhook) when a job fails or executes.
+**Never babysit a cron tab again.**
 
-## Features
+Open source cron job scheduler and HTTP request runner with a full admin UI — schedule requests, monitor failures, and get notified on Slack, email, SMS or webhook the moment something breaks.
 
-- **Cron jobs**: schedule recurring HTTP requests (GET/POST/PUT/DELETE/HEAD/OPTIONS) using standard cron expressions. Configure URL, method, body, content type, auth header, timeout, and custom HTTP headers per job.
-- **TCP reachability checks**: point a job's host at a non-HTTP address to monitor a service via a plain TCP connection instead of an HTTP call.
-- **Request collections**: Postman-style folders of requests with their own headers/parameters/variables, importable directly from a Postman export.
-- **Variables**: project- or collection-scoped `{{variable}}` substitution available in URLs and headers, useful for secrets/config that shouldn't be hardcoded per request.
-- **Execution logs**: every run (scheduled or manual "Test") is persisted with status, duration, response body/headers and size.
-- **Notifications**: notify on failure and/or execution via email, SMS, Slack webhook, or a generic HTTP webhook.
-- **Admin UI**: full CRUD web UI built on ZK via Dynamia Tools, no separate frontend project required.
+Built with Spring Boot and [Dynamia Tools](https://www.dynamiasoluciones.com).
+
+[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![Java](https://img.shields.io/badge/Java-25-orange.svg)](https://openjdk.org/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4-brightgreen.svg)](https://spring.io/projects/spring-boot)
+
+</div>
+
+---
+
+## Why Chronos?
+
+Cron jobs that call an HTTP endpoint usually end up scattered across `crontab -e` entries, `curl` scripts, and tribal knowledge of "who set that up." Chronos gives you a proper home for them:
+
+- 🗂️ **Organize by project** — group cron jobs, request collections, variables and notification channels per team or product.
+- ⏰ **Schedule anything HTTP** — GET/POST/PUT/DELETE/HEAD/OPTIONS, standard cron expressions, custom headers, auth, timeouts, and body.
+- 🔌 **Monitor plain TCP services too** — no HTTP endpoint? Point a job at `host:port` and Chronos checks reachability instead.
+- 🧰 **Postman-style request collections** — import an existing Postman export and reuse it as a manual API workbench, no separate tool needed.
+- 🧩 **Reusable variables** — `{{secrets}}`/`{{config}}` shared across jobs and requests, scoped per project or collection.
+- 📜 **Full execution history** — every run logs status, duration, response size, and body, whether triggered by the scheduler or a manual "Test" click.
+- 🔔 **Notify where your team already is** — email, SMS, Slack webhook, or a generic HTTP webhook, on failure and/or success.
+- 🖥️ **Batteries-included admin UI** — a complete CRUD web app out of the box, no separate frontend to build or deploy.
 
 ## Requirements
 
@@ -20,7 +35,7 @@ Chronos lets you organize **Projects** containing scheduled HTTP cron jobs, Post
 - Maven (or use the bundled `./mvnw`)
 - MySQL / Percona (schema is auto-migrated on boot via `hibernate.ddl-auto: update`)
 
-## Running locally
+## Quick start
 
 ```bash
 ./mvnw spring-boot:run
@@ -44,6 +59,40 @@ Once started, the admin UI is available at `http://localhost:8080`.
 ./mvnw clean package
 ```
 
+## Running with Docker
+
+Chronos uses Spring Boot's built-in [Cloud Native Buildpacks](https://spring.io/guides/topicals/spring-boot-docker/) support — no `Dockerfile` needed. Requires a running Docker daemon.
+
+Build the image:
+
+```bash
+./mvnw spring-boot:build-image
+```
+
+This produces `docker.io/library/dynamia-chronos:1.1.0` (name and tag follow `artifactId:version` by default). To use a custom name/tag instead:
+
+```bash
+./mvnw spring-boot:build-image -Dspring-boot.build-image.imageName=yourrepo/dynamia-chronos:latest
+```
+
+Run it, pointing at your database:
+
+```bash
+docker run -p 8080:8080 \
+  -e DATABASE_URL=jdbc:mysql://host.docker.internal:3306/dynamiachronos \
+  -e DATABASE_USERNAME=root \
+  -e DATABASE_PASSWORD=yourpassword \
+  dynamia-chronos:1.1.0
+```
+
+> On Linux, replace `host.docker.internal` with your host's IP (or run MySQL in the same Docker network) since that hostname is a Docker Desktop convenience for Mac/Windows.
+
+Push it to your registry like any other image:
+
+```bash
+docker push yourrepo/dynamia-chronos:latest
+```
+
 ## Testing
 
 ```bash
@@ -58,6 +107,10 @@ Run a single test class or method:
 ```
 
 > `DynamiaChronosApplicationTests` boots the full Spring context and requires a reachable MySQL database; the rest of the suite is plain JUnit and has no external dependencies.
+
+## Contributing
+
+Issues and pull requests are welcome. If you're proposing a larger change, open an issue first so we can align on the approach.
 
 ## License
 
