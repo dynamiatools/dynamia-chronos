@@ -61,8 +61,10 @@ public class RequestCollection extends SimpleEntity implements HeadersProvider, 
     }
 
     public void setHeaders(Map<String, String> headers) {
-        if (headers != null) {
+        if (headers != null && !headers.isEmpty()) {
             this.headers = StringPojoParser.convertMapToJson(headers);
+        } else {
+            this.headers = null;
         }
     }
 

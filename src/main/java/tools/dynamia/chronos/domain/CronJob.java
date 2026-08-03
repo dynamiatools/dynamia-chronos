@@ -7,17 +7,21 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
 import org.springframework.scheduling.support.CronExpression;
 import tools.dynamia.chronos.ChronosHttpRequest;
+import tools.dynamia.chronos.HeadersProvider;
 import tools.dynamia.chronos.ProjectAware;
 import tools.dynamia.commons.DateTimeUtils;
+import tools.dynamia.commons.StringPojoParser;
 import tools.dynamia.domain.contraints.NotEmpty;
 
 import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "crn_jobs")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class CronJob extends ChronosHttpRequest implements ProjectAware {
+public class CronJob extends ChronosHttpRequest implements ProjectAware, HeadersProvider {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnore
@@ -36,6 +40,8 @@ public class CronJob extends ChronosHttpRequest implements ProjectAware {
     private LocalDateTime createdAt = LocalDateTime.now();
     private long executionsCount;
     private String status;
+    @Column(columnDefinition = "json")
+    private String headers;
 
     public CronJob() {
     }
@@ -129,5 +135,30 @@ public class CronJob extends ChronosHttpRequest implements ProjectAware {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    @Override
+    public Map<String, String> getHeaders() {
+        if (headers != null && !headers.isEmpty()) {
+            return StringPojoParser.parseJsonToMap(headers)
+                    .entrySet().stream()
+                    .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().toString()));
+        } else {
+            return Map.of();
+        }
+    }
+
+    public void setHeaders(Map<String, String> headers) {
+        if (headers != null && !headers.isEmpty()) {
+            this.headers = StringPojoParser.convertMapToJson(headers);
+        } else {
+            this.headers = null;
+        }
+    }
+
+    public void checkHeaders() {
+        if (headers != null && headers.isBlank()) {
+            this.headers = null;
+        }
     }
 }

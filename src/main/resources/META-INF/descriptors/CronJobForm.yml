@@ -23,6 +23,11 @@ fields:
   active:
   notifyFails:
   notifyExecutions:
+  headers:
+    label: Custom Headers
+    component: headerseditor
+    params:
+      span: 4
 
 
 layout:

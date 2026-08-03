@@ -56,10 +56,12 @@ public class DashboardViewModel extends AbstractProjectsViewModel {
             notificators.forEach(nf -> {
                 var nofNode = node.addChild(nf);
                 var sender = projectService.findNotificationSender(nf.getSender());
-                nofNode.setIcon(sender.getIcon());
-                nofNode.setLabel(nf.getContact());
-                if (nofNode.getLabel().length() > 60) {
-                    nofNode.setLabel(sender.getName());
+                if (sender != null) {
+                    nofNode.setIcon(sender.getIcon());
+                    nofNode.setLabel(nf.getContact());
+                    if (nofNode.getLabel().length() > 60) {
+                        nofNode.setLabel(sender.getName());
+                    }
                 }
             });
             if (notificators.isEmpty()) {

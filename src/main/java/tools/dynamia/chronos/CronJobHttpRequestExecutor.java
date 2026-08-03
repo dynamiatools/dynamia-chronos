@@ -5,6 +5,7 @@ import tools.dynamia.chronos.domain.CronJobLog;
 import tools.dynamia.chronos.domain.Variable;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.List;
 import java.util.function.Consumer;
@@ -55,7 +56,9 @@ public class CronJobHttpRequestExecutor extends ChronosHttpRequestExecutor {
     private void checkConnection(ChronosHttpResponse log, String parserServerHost) {
         if (cronJob.getServerPort() != null && cronJob.getServerPort() > 0) {
             logger.accept("Checking connection to " + parserServerHost + ":" + cronJob.getServerPort());
-            try (Socket socket = new Socket(parserServerHost, cronJob.getServerPort())) {
+            try (Socket socket = new Socket()) {
+                socket.connect(new InetSocketAddress(parserServerHost, cronJob.getServerPort()),
+                        (int) cronJob.getServerTimeout().toMillis());
                 log.setStatus("Connected");
             } catch (IOException e) {
                 log.setStatus("Cannot connect to server");
