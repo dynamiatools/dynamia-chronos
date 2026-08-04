@@ -7,7 +7,9 @@ fields:
     params:
       header:
         width: 200px
+  httpMethod:
   serverHost:
+    label: Server Host (URL)
     component: html
     params:
       converter: converters.Mustache

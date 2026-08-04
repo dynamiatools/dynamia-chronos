@@ -11,13 +11,15 @@ fields:
       multiline: true
       height: 80px
       span: 4
+  httpMethod:
   serverHost:
+    label: Server Host (URL)
+    params:
+      span: 2
   serverPort:
   serverAuthorization:
   serverTimeout:
   cronExpression:
-    params:
-      span: 3
   contentType:
 
   active:
