@@ -42,6 +42,12 @@
         <java.version>25</java.version>
         <dynamiatools.version>26.7.0</dynamiatools.version>
         <shedlock.version>7.7.0</shedlock.version>
+        <!-- Override the parent's managed testcontainers.version (2.0.5): the
+             individual junit-jupiter/mysql modules aren't published for 2.x
+             yet, only up to 1.21.4. Pinning here (rather than per-dependency)
+             keeps testcontainers-core and the modules on one consistent
+             version. Bump/remove once 2.x modules catch up. -->
+        <testcontainers.version>1.21.4</testcontainers.version>
     </properties>
 
     <dependencies>
@@ -105,6 +111,25 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Real MySQL via Testcontainers for DynamiaChronosApplicationTests,
+             instead of requiring a reachable external DB in every environment
+             that runs the suite (previously the only thing blocking real CI). -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>mysql</artifactId>
             <scope>test</scope>
         </dependency>
 

@@ -17,7 +17,7 @@ Dynamia Chronos: open source cron job scheduler / HTTP request runner built on S
 
 ### Database
 
-The app requires a MySQL/Percona instance (`spring.datasource.url` in `application.yml`, defaults to `jdbc:mysql://localhost:3306/dynamiachronos`, overridable via `DATABASE_URL`/`DATABASE_USERNAME`/`DATABASE_PASSWORD` env vars). `hibernate.ddl-auto: update` auto-migrates the schema on boot — there are no separate migration scripts. `DynamiaChronosApplicationTests` (`@SpringBootTest`) needs a live, reachable DB with correct credentials to pass; it will fail with a connection/auth error in environments without one configured. All other tests are pure JUnit and do not require a DB or Spring context.
+The app requires a MySQL/Percona instance (`spring.datasource.url` in `application.yml`, defaults to `jdbc:mysql://localhost:3306/dynamiachronos`, overridable via `DATABASE_URL`/`DATABASE_USERNAME`/`DATABASE_PASSWORD` env vars). `hibernate.ddl-auto: update` auto-migrates the schema on boot — there are no separate migration scripts. `DynamiaChronosApplicationTests` (`@SpringBootTest`) boots against a real MySQL run via Testcontainers (`@Container` + `@ServiceConnection` on a `MySQLContainer`) rather than `DATABASE_URL`, so it needs a reachable Docker daemon but no pre-provisioned external DB — this is also what `.github/workflows/ci.yml` runs on every push/PR. All other tests are pure JUnit and do not require a DB, Docker, or Spring context.
 
 ## Architecture
 

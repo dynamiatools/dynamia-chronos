@@ -31,9 +31,12 @@ Trabajo de la v1.2.0 en progreso — ver [TASKS.md](TASKS.md) para el detalle.
   reemplazando el `HttpClient` nuevo por ejecución que no tenía límite de
   threads. El `serverTimeout` de cada job sigue mandando sobre el timeout de
   request/response, sin importar la config global del cliente.
+- CI real vía GitHub Actions (`.github/workflows/ci.yml`): `./mvnw test` en
+  cada push/PR contra `ubuntu-latest`. `DynamiaChronosApplicationTests` ahora
+  bootea contra MySQL real en Testcontainers en vez de requerir una BD
+  externa alcanzable — corre en cualquier entorno con Docker.
 
-### Planned
-- Tests de integración con Testcontainers (MySQL).
+Con esto, **v1.2.0 completo** — ver [ROADMAP.md](ROADMAP.md) para v1.3.0+.
 
 Nota: se evaluó Flyway para versionar el schema y se descartó — se sigue con
 `hibernate.ddl-auto=update`.
