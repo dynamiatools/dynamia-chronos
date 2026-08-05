@@ -1,5 +1,6 @@
 package tools.dynamia.chronos.services.impl;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import tools.dynamia.chronos.ChronosHttpResponse;
 import tools.dynamia.chronos.CronJobHttpRequestExecutor;
 import tools.dynamia.chronos.domain.CronJob;
@@ -22,11 +23,15 @@ import java.util.Map;
 @Service
 public class CronJobsServiceImpl extends AbstractService implements CronJobsService {
 
+    private static final String EXECUTIONS_METRIC = "chronos_cronjob_executions_total";
+    private static final String DURATION_METRIC = "chronos_cronjob_execution_duration_seconds";
 
     private final ProjectService projectService;
+    private final MeterRegistry meterRegistry;
 
-    public CronJobsServiceImpl(ProjectService projectService) {
+    public CronJobsServiceImpl(ProjectService projectService, MeterRegistry meterRegistry) {
         this.projectService = projectService;
+        this.meterRegistry = meterRegistry;
     }
 
     @Override
@@ -76,6 +81,7 @@ public class CronJobsServiceImpl extends AbstractService implements CronJobsServ
                 crudService().create(log);
             });
 
+            recordMetrics(cronJob, log, testMode);
             fireAfterExecutionListener(cronJob, log);
             return (CronJobLog) log;
         } catch (Exception e) {
@@ -91,8 +97,30 @@ public class CronJobsServiceImpl extends AbstractService implements CronJobsServ
             errorLog.setStatus("ERROR");
             errorLog.setStatusCode(500);
             crudService().create(errorLog);
+            recordMetrics(cronJob, errorLog, testMode);
             fireAfterExecutionListener(cronJob, errorLog);
             return errorLog;
+        }
+    }
+
+    /**
+     * Records execution metrics for Prometheus scraping (see {@code /actuator/prometheus}
+     * on the management port). Test-mode ("Test" action) runs are excluded so manual
+     * poking around doesn't skew a project's real success-rate/duration numbers.
+     */
+    private void recordMetrics(CronJob cronJob, ChronosHttpResponse log, boolean testMode) {
+        if (testMode) {
+            return;
+        }
+        String project = cronJob.getProject() != null ? cronJob.getProject().getName() : "unknown";
+        meterRegistry.counter(EXECUTIONS_METRIC,
+                "project", project,
+                "result", log.isFail() ? "failure" : "success"
+        ).increment();
+
+        if (log.getDuration() != null) {
+            meterRegistry.timer(DURATION_METRIC, "project", project)
+                    .record(log.getDuration());
         }
     }
 

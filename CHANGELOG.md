@@ -8,10 +8,16 @@ de las próximas versiones.
 
 Trabajo de la v1.2.0 en progreso — ver [TASKS.md](TASKS.md) para el detalle.
 
+### Added
+- Métricas Prometheus/Micrometer: contador de ejecuciones por proyecto/resultado,
+  timer de duración, gauge de próxima ejecución por job. Actuator expuesto en
+  un puerto de management separado (`MANAGEMENT_PORT`, default 9090),
+  restringido por red en vez de por login de la app.
+
 ### Planned
 - Distributed locking del scheduler (ShedLock) para soportar múltiples réplicas.
 - Retry con backoff configurable por `CronJob`.
-- Métricas Prometheus/Micrometer + health probes.
+- Health probes (liveness/readiness).
 - Executor/thread-pool configurable vía `application.yml`.
 - Tests de integración con Testcontainers (MySQL).
 

@@ -38,13 +38,29 @@ directo sobre `main`.
 Se mantiene `hibernate.ddl-auto=update`. Sin tasks aquí; cada feature que
 añada columnas sigue el patrón ya documentado en `CLAUDE.md`.
 
-### 4. Observabilidad
-- [ ] Agregar `spring-boot-starter-actuator` + `micrometer-registry-prometheus`.
-- [ ] Exponer `/actuator/prometheus`.
-- [ ] Métricas custom: contador de ejecuciones (éxito/fallo) por proyecto,
-      timer de duración de ejecución, gauge de próxima ejecución por job.
-- [ ] Decidir y documentar qué endpoints de Actuator quedan expuestos sin auth
-      (mínimo: health, prometheus detrás de red interna).
+### 4. Observabilidad — `feature/observability-metrics`
+- [x] `spring-boot-starter-actuator` ya estaba; se agregó `micrometer-registry-prometheus`.
+- [x] `/actuator/prometheus` expuesto — **decisión**: Actuator corre en su
+      propio puerto (`management.server.port`, default 9090 vía
+      `MANAGEMENT_PORT`), separado de `server.port`. No se aseguró detrás del
+      login de la app: se restringe por red (sin ingress público / Service de
+      k8s solo intra-cluster), no con auth. `include: health,prometheus,info`.
+- [x] Métricas custom:
+      - Contador `chronos_cronjob_executions_total{project,result}` — por
+        proyecto y resultado (success/failure), en `CronJobsServiceImpl`.
+      - Timer `chronos_cronjob_execution_duration_seconds{project}`.
+      - Gauge `chronos_cronjob_next_execution_timestamp_seconds{job,project}`
+        vía `MultiGauge` en `CronJobScheduler`, recalculado en cada cambio de
+        scheduling (no hay upsert por fila en `MultiGauge`, se recalcula el
+        set completo — barato porque solo corre en altas/bajas/updates de
+        jobs, no en cada tick).
+      - Ejecuciones en modo Test (acción "Test") se excluyen de las métricas
+        para no ensuciar success-rate/duración reales.
+- [x] Tests: `CronJobTest` (nuevos casos para `getNextExecutionDateTime()`).
+      El registro efectivo de métricas (`recordMetrics`) no tiene test unitario
+      propio — depende de `crudService()`/contexto Spring como el resto de
+      `CronJobsServiceImpl`; queda cubierto por verificación manual y, más
+      adelante, por la suite de `feature/testcontainers-ci`.
 
 ### 5. Health probes
 - [ ] Habilitar `management.endpoint.health.probes.enabled=true`.
