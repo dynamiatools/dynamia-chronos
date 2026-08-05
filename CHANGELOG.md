@@ -8,12 +8,17 @@ de las próximas versiones.
 
 Trabajo de la v1.2.0 en progreso — ver [TASKS.md](TASKS.md) para el detalle.
 
+### Added
+- CI real vía GitHub Actions (`.github/workflows/ci.yml`): `./mvnw test` en
+  cada push/PR contra `ubuntu-latest`. `DynamiaChronosApplicationTests` ahora
+  bootea contra MySQL real en Testcontainers en vez de requerir una BD
+  externa alcanzable — corre en cualquier entorno con Docker.
+
 ### Planned
 - Distributed locking del scheduler (ShedLock) para soportar múltiples réplicas.
 - Retry con backoff configurable por `CronJob`.
 - Métricas Prometheus/Micrometer + health probes.
 - Executor/thread-pool configurable vía `application.yml`.
-- Tests de integración con Testcontainers (MySQL).
 
 Nota: se evaluó Flyway para versionar el schema y se descartó — se sigue con
 `hibernate.ddl-auto=update`.

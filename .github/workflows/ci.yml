@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      # ubuntu-latest ships Docker preinstalled and running, which is all
+      # Testcontainers needs — DynamiaChronosApplicationTests spins up its
+      # own MySQL container, no external DB/service to provision here.
+      - name: Run tests
+        run: ./mvnw -B test

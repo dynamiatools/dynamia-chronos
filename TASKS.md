@@ -57,11 +57,25 @@ añada columnas sigue el patrón ya documentado en `CLAUDE.md`.
 - [ ] Confirmar que `serverTimeout` por job sigue teniendo prioridad sobre el
       timeout global.
 
-### 7. CI real con Testcontainers
-- [ ] Introducir Testcontainers MySQL en el módulo de test.
-- [ ] Separar `DynamiaChronosApplicationTests` (hoy requiere BD real externa)
-      para que corra contra el contenedor, no contra una BD fija.
-- [ ] Agregar GitHub Actions workflow: `./mvnw test` en cada PR.
+### 7. CI real con Testcontainers — `feature/testcontainers-ci`
+- [x] Testcontainers MySQL introducido: `spring-boot-testcontainers` +
+      `org.testcontainers:junit-jupiter`/`mysql`. **Nota de versión**: el
+      `testcontainers.version` que trae el parent de Spring Boot (2.0.5) no
+      tiene publicados los módulos `junit-jupiter`/`mysql` todavía — se
+      pineó la property a `1.21.4` (la última que sí los publica) en el
+      `<properties>` del propio pom, no por dependencia individual, para que
+      `testcontainers-core` y los módulos queden en la misma versión. Revisar
+      al hacer bump de dynamiatools/Spring Boot si 2.x ya los publicó.
+- [x] `DynamiaChronosApplicationTests` ahora usa `@Testcontainers` +
+      `@Container` + `@ServiceConnection` sobre un `MySQLContainer` — ya no
+      depende de `DATABASE_URL`/una BD externa alcanzable, solo de un daemon
+      Docker. Verificado corriendo localmente: bootea el contexto completo
+      contra MySQL real (~16-40s con el pull de la imagen).
+- [x] GitHub Actions (`.github/workflows/ci.yml`): `./mvnw test` en cada push
+      a `main` y en cada PR, sobre `ubuntu-latest` (Docker viene preinstalado,
+      no hace falta provisionar nada aparte).
+- [x] `CLAUDE.md` actualizado: la nota de "necesita BD externa reachable" para
+      `DynamiaChronosApplicationTests` ya no aplica.
 
 ---
 
