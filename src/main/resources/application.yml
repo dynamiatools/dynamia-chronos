@@ -32,3 +32,32 @@ spring:
     database-platform: org.hibernate.dialect.MySQLDialect
 server:
   port: ${PORT:8080}
+
+management:
+  # Actuator on its own port, kept off the public app port (server.port) —
+  # restricted at the network layer (k8s Service/NetworkPolicy, firewall),
+  # not behind the app's own login. See feature/observability-metrics for
+  # the Prometheus endpoint that also lives on this port.
+  server:
+    port: ${MANAGEMENT_PORT:9090}
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      # Exposes /actuator/health/liveness and /actuator/health/readiness,
+      # the two k8s probes should point at.
+      probes:
+        enabled: true
+      group:
+        readiness:
+          # Deliberately widened past Spring Boot's default (readinessState
+          # only): Chronos can't do its one job — running scheduled HTTP
+          # calls and persisting the result — without the DB, so a broken
+          # DB connection should fail readiness and pull the pod out of the
+          # k8s Service, not just leave it marked "started".
+          # DataSourceHealthContributorAutoConfiguration already registers a
+          # "db" indicator backed by a real connection-validation query, no
+          # custom HealthIndicator needed here.
+          include: readinessState,db

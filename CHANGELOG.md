@@ -8,10 +8,15 @@ de las próximas versiones.
 
 Trabajo de la v1.2.0 en progreso — ver [TASKS.md](TASKS.md) para el detalle.
 
+### Added
+- Health probes de k8s (`/actuator/health/liveness`, `/readiness`), con
+  readiness ampliado para incluir conectividad real a la BD (`db`), no solo
+  el estado de arranque de la app.
+
 ### Planned
 - Distributed locking del scheduler (ShedLock) para soportar múltiples réplicas.
 - Retry con backoff configurable por `CronJob`.
-- Métricas Prometheus/Micrometer + health probes.
+- Métricas Prometheus/Micrometer.
 - Executor/thread-pool configurable vía `application.yml`.
 - Tests de integración con Testcontainers (MySQL).
 

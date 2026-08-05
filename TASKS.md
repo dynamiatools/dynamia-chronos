@@ -46,10 +46,29 @@ añada columnas sigue el patrón ya documentado en `CLAUDE.md`.
 - [ ] Decidir y documentar qué endpoints de Actuator quedan expuestos sin auth
       (mínimo: health, prometheus detrás de red interna).
 
-### 5. Health probes
-- [ ] Habilitar `management.endpoint.health.probes.enabled=true`.
-- [ ] Verificar que liveness/readiness reflejen conectividad real a la BD.
-- [ ] Documentar probes de ejemplo (aunque el manifest k8s completo es v1.5.0).
+### 5. Health probes — `feature/health-probes`
+- [x] `management.endpoint.health.probes.enabled=true` → expone
+      `/actuator/health/liveness` y `/actuator/health/readiness`.
+- [x] Readiness ampliado más allá del default de Spring Boot
+      (`readinessState` solo): `group.readiness.include: readinessState,db`.
+      Decisión explícita — Chronos no puede cumplir su función (correr jobs
+      HTTP y persistir el resultado) sin BD, así que una BD caída debe sacar
+      el pod del Service de k8s, no solo marcarlo "started". El indicador
+      `db` ya lo trae gratis `DataSourceHealthContributorAutoConfiguration`
+      (query real de validación de conexión) — no hizo falta HealthIndicator
+      custom.
+- [x] Vive en el mismo puerto de management separado que
+      `feature/observability-metrics` (mismo bloque `management:`, a
+      reconciliar al integrar ambas ramas).
+- [ ] Ejemplo de manifest k8s con estos probes: diferido a
+      `feature/docker-deployment` (v1.5.0), donde vive el resto del manifest.
+
+> **Nota:** esta feature es 100% configuración (`application.yml`), sin
+> código Java. Verificar que readiness realmente cae cuando la BD no
+> responde requiere un contexto Spring + Actuator + BD real levantados —
+> no hay forma honesta de cubrirlo con un test unitario puro como los del
+> resto del repo; queda como verificación manual (`curl` al endpoint con la
+> BD caída) y, a futuro, como caso de la suite de `feature/testcontainers-ci`.
 
 ### 6. Executor configurable
 - [ ] Externalizar tamaño de thread pool HTTP y timeouts globales a
