@@ -8,11 +8,17 @@ de las próximas versiones.
 
 Trabajo de la v1.2.0 en progreso — ver [TASKS.md](TASKS.md) para el detalle.
 
+### Added
+- HTTP client compartido y configurable (`chronos.http.thread-pool-size`,
+  `chronos.http.connect-timeout`) para todas las ejecuciones de cron jobs,
+  reemplazando el `HttpClient` nuevo por ejecución que no tenía límite de
+  threads. El `serverTimeout` de cada job sigue mandando sobre el timeout de
+  request/response, sin importar la config global del cliente.
+
 ### Planned
 - Distributed locking del scheduler (ShedLock) para soportar múltiples réplicas.
 - Retry con backoff configurable por `CronJob`.
 - Métricas Prometheus/Micrometer + health probes.
-- Executor/thread-pool configurable vía `application.yml`.
 - Tests de integración con Testcontainers (MySQL).
 
 Nota: se evaluó Flyway para versionar el schema y se descartó — se sigue con

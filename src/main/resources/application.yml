@@ -32,3 +32,13 @@ spring:
     database-platform: org.hibernate.dialect.MySQLDialect
 server:
   port: ${PORT:8080}
+
+chronos:
+  http:
+    # Bounded thread pool backing the shared HttpClient used by every
+    # scheduled job/test run (see ChronosHttpClientConfig). Each job's own
+    # serverTimeout still governs its request/response window and always
+    # takes priority over this — these two only bound the shared connection
+    # machinery, not any single job's behavior.
+    thread-pool-size: ${CHRONOS_HTTP_THREAD_POOL_SIZE:20}
+    connect-timeout: ${CHRONOS_HTTP_CONNECT_TIMEOUT:10s}

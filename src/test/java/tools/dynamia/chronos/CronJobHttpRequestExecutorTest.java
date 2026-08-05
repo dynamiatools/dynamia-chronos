@@ -130,4 +130,62 @@ class CronJobHttpRequestExecutorTest {
         assertTrue(log.isFail());
         assertEquals("Invalid Port", log.getStatus());
     }
+
+    @Test
+    void executesSuccessfullyWithAnInjectedSharedHttpClient() throws IOException {
+        httpServer = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        httpServer.createContext("/", exchange -> {
+            byte[] body = "ok".getBytes();
+            exchange.sendResponseHeaders(200, body.length);
+            exchange.getResponseBody().write(body);
+            exchange.close();
+        });
+        httpServer.start();
+
+        CronJob cronJob = new CronJob();
+        cronJob.setName("http-job");
+        cronJob.setServerHost("http://127.0.0.1:" + httpServer.getAddress().getPort());
+
+        var sharedClient = java.net.http.HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(5))
+                .build();
+        var log = new CronJobHttpRequestExecutor(cronJob, List.of(), msg -> {}, sharedClient).execute();
+
+        assertFalse(log.isFail());
+    }
+
+    @Test
+    void jobServerTimeoutTakesPriorityOverSharedClientConnectTimeout() throws IOException {
+        httpServer = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        httpServer.createContext("/", exchange -> {
+            try {
+                // Sleeps well past the job's own serverTimeout below. The
+                // connection itself succeeds instantly (loopback), so this
+                // only fails if serverTimeout (request timeout) is honored
+                // even though the shared client's connectTimeout is long.
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            byte[] body = "too slow".getBytes();
+            exchange.sendResponseHeaders(200, body.length);
+            exchange.getResponseBody().write(body);
+            exchange.close();
+        });
+        httpServer.start();
+
+        CronJob cronJob = new CronJob();
+        cronJob.setName("slow-job");
+        cronJob.setServerHost("http://127.0.0.1:" + httpServer.getAddress().getPort());
+        cronJob.setServerTimeout(Duration.ofMillis(100));
+
+        // Shared client's connectTimeout is generous on purpose: it must not
+        // be what governs this timeout, serverTimeout must.
+        var sharedClient = java.net.http.HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(30))
+                .build();
+        var log = new CronJobHttpRequestExecutor(cronJob, List.of(), msg -> {}, sharedClient).execute();
+
+        assertTrue(log.isFail());
+    }
 }

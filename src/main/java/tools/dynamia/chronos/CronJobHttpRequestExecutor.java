@@ -7,6 +7,7 @@ import tools.dynamia.chronos.domain.Variable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.http.HttpClient;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -18,6 +19,11 @@ public class CronJobHttpRequestExecutor extends ChronosHttpRequestExecutor {
 
     public CronJobHttpRequestExecutor(CronJob cronJob, List<Variable> variables, Consumer<String> logger) {
         super(cronJob, variables, logger);
+        this.cronJob = cronJob;
+    }
+
+    public CronJobHttpRequestExecutor(CronJob cronJob, List<Variable> variables, Consumer<String> logger, HttpClient httpClient) {
+        super(cronJob, variables, logger, httpClient);
         this.cronJob = cronJob;
     }
 
