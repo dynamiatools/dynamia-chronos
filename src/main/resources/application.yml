@@ -23,6 +23,11 @@ spring:
     password: ${DATABASE_PASSWORD:1234}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+  sql:
+    init:
+      # Runs schema.sql (currently just the shedlock table) on every boot.
+      # No migration tool: CREATE TABLE IF NOT EXISTS keeps it idempotent.
+      mode: always
 
   jpa:
 
