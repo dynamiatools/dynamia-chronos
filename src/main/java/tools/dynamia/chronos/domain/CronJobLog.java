@@ -35,6 +35,14 @@ public class CronJobLog extends ChronosHttpResponse {
     private String serverHost;
     private boolean test;
 
+    /**
+     * How many attempts this execution took (1 = succeeded/failed on the
+     * first try, no retry involved). One log row is kept per trigger even
+     * when retries happened, so the history doesn't get spammed with
+     * intermediate failed attempts.
+     */
+    private int attemptCount = 1;
+
     public CronJobLog() {
         setStartDate(LocalDateTime.now());
     }
@@ -100,6 +108,9 @@ public class CronJobLog extends ChronosHttpResponse {
         htb.addRowAndData("Executed: ", isExecuted());
         htb.addRowAndData("Failed: ", isFail());
         htb.addRowAndData("Duration: ", getDuration().toMillis() + "ms");
+        if (attemptCount > 1) {
+            htb.addRowAndData("Attempts: ", attemptCount);
+        }
         return htb.render();
     }
 
@@ -117,5 +128,13 @@ public class CronJobLog extends ChronosHttpResponse {
 
     public void setTest(boolean test) {
         this.test = test;
+    }
+
+    public int getAttemptCount() {
+        return attemptCount;
+    }
+
+    public void setAttemptCount(int attemptCount) {
+        this.attemptCount = attemptCount;
     }
 }

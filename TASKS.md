@@ -21,18 +21,30 @@ directo sobre `main`.
 - [ ] Test de integración: 2 instancias simuladas del scheduler contra la misma
       BD → solo una ejecuta el job.
 
-### 2. Retry / backoff
-- [ ] Agregar columnas `max_retries` (int, default 0) y `backoff_ms` (int,
-      default 0) a `CronJob`.
-- [ ] Lógica de reintento en `CronJobsServiceImpl.execute()`: reintentar sobre
-      fallo de `ChronosHttpRequestExecutor` hasta `maxRetries`, con backoff
-      (fijo o exponencial simple — decidir al implementar).
-- [ ] `CronJobLog` debe registrar el número de intento (nuevo campo
-      `attemptNumber` o similar) para que el historial no se preste a confusión.
-- [ ] Notificación solo se dispara tras agotar reintentos (no en cada intento
-      fallido intermedio).
-- [ ] Tests unitarios: 0 reintentos (comportamiento actual sin regresión),
-      N reintentos con éxito en el intento k, N reintentos agotados.
+### 2. Retry / backoff — `feature/cronjob-retry-backoff`
+- [x] Columnas `maxRetries` (int, default 0) y `retryBackoffMs` (long, default
+      0) en `CronJob`, con setters que clampean negativos a 0.
+- [x] Lógica de reintento en `CronJobsServiceImpl`: extraída a
+      `runWithRetry(...)`, un método estático puro (sin `crudService()`)
+      desacoplado de la persistencia y del executor — reintenta mientras
+      `response.isFail()` y queden intentos. Backoff **exponencial**
+      (`backoffMs * 2^(attempt-1)`, cap de 60s) vía `nextBackoffMs(...)`.
+      Test mode (`test()`) nunca reintenta — feedback inmediato de un solo intento.
+- [x] `CronJobLog.attemptCount` registra cuántos intentos tomó (1 = sin
+      reintento). Un solo row de log por trigger, no uno por intento fallido.
+- [x] Notificación (`fireAfterExecutionListener`) sigue disparándose una sola
+      vez, después de agotar reintentos o del éxito — nunca en intentos
+      intermedios, porque el loop vive antes del punto donde se dispara.
+- [x] Tests: `CronJobsServiceImplRetryTest` (0 reintentos, éxito en intento k,
+      reintentos agotados, backoff exponencial con cap) + `CronJobTest`
+      (defaults, clamping de negativos).
+
+> **Nota para la integración con `feature/scheduler-distributed-lock`:** los
+> reintentos alargan la duración total de una ejecución más allá de
+> `serverTimeout`. Al mergear ambas ramas, `CronJobScheduler.executeWithLock`
+> debe calcular `lockAtMostFor` sobre `serverTimeout * (maxRetries + 1) +
+> backoff total`, no solo `serverTimeout` — si no, ShedLock puede soltar el
+> lock antes de que termine el último reintento.
 
 ### 3. ~~Migraciones versionadas (Flyway)~~ — descartado
 Se mantiene `hibernate.ddl-auto=update`. Sin tasks aquí; cada feature que

@@ -86,4 +86,21 @@ class CronJobTest {
 
         assertEquals("none", cronJob.getNextExecution());
     }
+
+    @Test
+    void retryDefaultsToNoRetry() {
+        CronJob cronJob = new CronJob();
+        assertEquals(0, cronJob.getMaxRetries());
+        assertEquals(0, cronJob.getRetryBackoffMs());
+    }
+
+    @Test
+    void negativeRetryValuesAreClampedToZero() {
+        CronJob cronJob = new CronJob();
+        cronJob.setMaxRetries(-5);
+        cronJob.setRetryBackoffMs(-100);
+
+        assertEquals(0, cronJob.getMaxRetries());
+        assertEquals(0, cronJob.getRetryBackoffMs());
+    }
 }

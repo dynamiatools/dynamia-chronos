@@ -8,9 +8,14 @@ de las próximas versiones.
 
 Trabajo de la v1.2.0 en progreso — ver [TASKS.md](TASKS.md) para el detalle.
 
+### Added
+- Retry con backoff exponencial configurable por `CronJob` (`maxRetries`,
+  `retryBackoffMs`). `CronJobLog.attemptCount` registra cuántos intentos tomó
+  una ejecución; la notificación solo se dispara una vez, tras agotar
+  reintentos o al éxito.
+
 ### Planned
 - Distributed locking del scheduler (ShedLock) para soportar múltiples réplicas.
-- Retry con backoff configurable por `CronJob`.
 - Métricas Prometheus/Micrometer + health probes.
 - Executor/thread-pool configurable vía `application.yml`.
 - Tests de integración con Testcontainers (MySQL).
