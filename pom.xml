@@ -41,6 +41,7 @@
     <properties>
         <java.version>25</java.version>
         <dynamiatools.version>26.7.0</dynamiatools.version>
+        <shedlock.version>7.7.0</shedlock.version>
     </properties>
 
     <dependencies>
@@ -80,6 +81,26 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Distributed lock for the cron job scheduler, so only one app instance
+             runs a given job when there is more than one replica -->
+        <dependency>
+            <groupId>net.javacrumbs.shedlock</groupId>
+            <artifactId>shedlock-spring</artifactId>
+            <version>${shedlock.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>net.javacrumbs.shedlock</groupId>
+            <artifactId>shedlock-provider-jdbc-template</artifactId>
+            <version>${shedlock.version}</version>
+        </dependency>
+
+        <!-- In-memory DB used only to unit-test the locking behaviour without a real MySQL -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
 

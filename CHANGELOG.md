@@ -8,8 +8,13 @@ de las próximas versiones.
 
 Trabajo de la v1.2.0 en progreso — ver [TASKS.md](TASKS.md) para el detalle.
 
+### Added
+- Locking distribuido del scheduler (ShedLock) — `CronJobScheduler` ahora
+  ejecuta cada cron job bajo un lock por `cronJob.id`, así que correr Chronos
+  con múltiples réplicas ya no dispara el mismo job duplicado. Tabla
+  `shedlock` creada vía `schema.sql` (sin Flyway).
+
 ### Planned
-- Distributed locking del scheduler (ShedLock) para soportar múltiples réplicas.
 - Retry con backoff configurable por `CronJob`.
 - Métricas Prometheus/Micrometer + health probes.
 - Executor/thread-pool configurable vía `application.yml`.

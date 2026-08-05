@@ -13,13 +13,23 @@ directo sobre `main`.
 
 ## v1.2.0 — Escalabilidad y preparación
 
-### 1. Distributed locking (scheduler)
-- [ ] Agregar dependencia `shedlock-spring` + `shedlock-provider-jdbc-template`.
-- [ ] Crear tabla `shedlock` (vía migración Flyway, ver bloque 3).
-- [ ] Envolver la ejecución programada en `CronJobScheduler` con `@SchedulerLock`
-      (lockAtMostFor/lockAtLeastFor acorde a `serverTimeout` del job).
-- [ ] Test de integración: 2 instancias simuladas del scheduler contra la misma
-      BD → solo una ejecuta el job.
+### 1. Distributed locking (scheduler) — `feature/scheduler-distributed-lock`
+- [x] Agregar dependencia `shedlock-spring` + `shedlock-provider-jdbc-template` (7.7.0).
+- [x] Crear tabla `shedlock` vía `src/main/resources/schema.sql`
+      (`CREATE TABLE IF NOT EXISTS`, `spring.sql.init.mode: always`) — sin
+      Flyway, consistente con la decisión de seguir con `ddl-auto: update`.
+- [x] Envolver la ejecución programada en `CronJobScheduler`. Nota de diseño:
+      los jobs se registran dinámicamente vía `ScheduledTaskRegistrar`
+      (cron expression por entidad, no un método fijo), así que `@SchedulerLock`
+      (AOP sobre métodos anotados) no aplica — se usó la API programática
+      (`LockingTaskExecutor`/`DefaultLockingTaskExecutor`) en
+      `CronJobScheduler.executeWithLock()`. `lockAtMostFor` = `serverTimeout`
+      del job + 15s de margen, con piso de 30s; `lockAtLeastFor` = 0.
+- [x] Test de instancias simuladas: `CronJobSchedulerLockTest` levanta 2
+      `CronJobScheduler` (2 `LockProvider` independientes) contra la misma
+      tabla `shedlock` en H2 in-memory y dispara `executeWithLock` en paralelo
+      → solo una ejecuta el job. No requiere MySQL real (eso queda para la
+      suite de Testcontainers de `feature/testcontainers-ci`).
 
 ### 2. Retry / backoff
 - [ ] Agregar columnas `max_retries` (int, default 0) y `backoff_ms` (int,
