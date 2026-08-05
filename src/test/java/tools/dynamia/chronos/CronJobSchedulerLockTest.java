@@ -1,5 +1,6 @@
 package tools.dynamia.chronos;
 
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import net.javacrumbs.shedlock.core.LockProvider;
 import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider;
 import org.h2.jdbcx.JdbcDataSource;
@@ -60,9 +61,11 @@ class CronJobSchedulerLockTest {
         CronJobsService cronJobsService = slowCountingCronJobsService(executions);
 
         // Two schedulers standing in for two app instances: independent
-        // LockProvider instances, same underlying shedlock table.
-        CronJobScheduler scheduler1 = new CronJobScheduler(cronJobsService, newLockProvider());
-        CronJobScheduler scheduler2 = new CronJobScheduler(cronJobsService, newLockProvider());
+        // LockProvider instances, same underlying shedlock table. The meter
+        // registry is irrelevant to what this test verifies (locking), a
+        // plain in-memory one is enough to satisfy the constructor.
+        CronJobScheduler scheduler1 = new CronJobScheduler(cronJobsService, newLockProvider(), new SimpleMeterRegistry());
+        CronJobScheduler scheduler2 = new CronJobScheduler(cronJobsService, newLockProvider(), new SimpleMeterRegistry());
 
         CountDownLatch bothReady = new CountDownLatch(2);
         CountDownLatch go = new CountDownLatch(1);

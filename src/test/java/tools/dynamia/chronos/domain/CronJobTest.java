@@ -9,6 +9,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CronJobTest {
@@ -102,5 +103,24 @@ class CronJobTest {
 
         assertEquals(0, cronJob.getMaxRetries());
         assertEquals(0, cronJob.getRetryBackoffMs());
+    }
+
+    @Test
+    void nextExecutionDateTimeIsNullWhenInactive() {
+        CronJob cronJob = new CronJob();
+        cronJob.setActive(false);
+        cronJob.setCronExpression("0 0 * * * *");
+
+        assertNull(cronJob.getNextExecutionDateTime());
+    }
+
+    @Test
+    void nextExecutionDateTimeIsComputedFromCronExpressionWhenActive() {
+        CronJob cronJob = new CronJob();
+        cronJob.setCronExpression("0 0 * * * *"); // every hour on the hour
+
+        var next = cronJob.getNextExecutionDateTime();
+
+        assertTrue(next != null && next.isAfter(java.time.LocalDateTime.now()));
     }
 }

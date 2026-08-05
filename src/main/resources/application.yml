@@ -37,3 +37,20 @@ spring:
     database-platform: org.hibernate.dialect.MySQLDialect
 server:
   port: ${PORT:8080}
+
+management:
+  # Actuator runs on its own port, separate from the main app (server.port).
+  # Deliberate choice over securing /actuator/** behind the app's own auth:
+  # this port is meant to stay unreachable from outside the cluster/host
+  # network (no public ingress, no port-forward) — restrict it at the
+  # network layer (k8s Service/NetworkPolicy, firewall), not with a login.
+  server:
+    port: ${MANAGEMENT_PORT:9090}
+  endpoints:
+    web:
+      exposure:
+        # liveness/readiness probe groups are enabled in feature/health-probes
+        include: health,prometheus,info
+  metrics:
+    tags:
+      application: ${spring.application.name}

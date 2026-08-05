@@ -65,12 +65,22 @@ public class CronJob extends ChronosHttpRequest implements ProjectAware, Headers
 
     @Transient
     public String getNextExecution() {
-        if (!isActive()) {
-            return "none";
-        } else {
-            var next = CronExpression.parse(cronExpression).next(lastExecution != null ? lastExecution : LocalDateTime.now());
-            return DateTimeUtils.format(next, "yyyy-MM-dd HH:mm:ss");
+        var next = getNextExecutionDateTime();
+        return next == null ? "none" : DateTimeUtils.format(next, "yyyy-MM-dd HH:mm:ss");
+    }
+
+    /**
+     * Same as {@link #getNextExecution()} but as a raw {@link LocalDateTime}
+     * (null when inactive), for callers that need to compute with it instead
+     * of displaying it — e.g. the scheduler's "next execution" gauge.
+     */
+    @Transient
+    @JsonIgnore
+    public LocalDateTime getNextExecutionDateTime() {
+        if (!isActive() || cronExpression == null) {
+            return null;
         }
+        return CronExpression.parse(cronExpression).next(lastExecution != null ? lastExecution : LocalDateTime.now());
     }
 
 

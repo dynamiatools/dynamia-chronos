@@ -1,8 +1,11 @@
 package tools.dynamia.chronos;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.MultiGauge;
+import io.micrometer.core.instrument.Tags;
+import net.javacrumbs.shedlock.core.DefaultLockingTaskExecutor;
 import net.javacrumbs.shedlock.core.LockConfiguration;
 import net.javacrumbs.shedlock.core.LockProvider;
-import net.javacrumbs.shedlock.core.DefaultLockingTaskExecutor;
 import net.javacrumbs.shedlock.core.LockingTaskExecutor;
 import org.springframework.scheduling.annotation.SchedulingConfigurer;
 import org.springframework.scheduling.config.CronTask;
@@ -17,12 +20,15 @@ import tools.dynamia.integration.sterotypes.Service;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneId;
 
 /*
 Main schedule configurer
  */
 @Service
 public class CronJobScheduler implements SchedulingConfigurer {
+
+    private static final String NEXT_EXECUTION_METRIC = "chronos_cronjob_next_execution_timestamp_seconds";
 
     /**
      * Floor applied to a job's serverTimeout when computing how long its
@@ -52,11 +58,15 @@ public class CronJobScheduler implements SchedulingConfigurer {
 
     private final CronJobsService cronJobsService;
     private final LockingTaskExecutor lockingTaskExecutor;
+    private final MultiGauge nextExecutionGauge;
     private ScheduledTaskRegistrar taskRegistrar;
 
-    public CronJobScheduler(CronJobsService cronJobsService, LockProvider lockProvider) {
+    public CronJobScheduler(CronJobsService cronJobsService, LockProvider lockProvider, MeterRegistry meterRegistry) {
         this.cronJobsService = cronJobsService;
         this.lockingTaskExecutor = new DefaultLockingTaskExecutor(lockProvider);
+        this.nextExecutionGauge = MultiGauge.builder(NEXT_EXECUTION_METRIC)
+                .description("Epoch seconds of the next scheduled run for each active cron job")
+                .register(meterRegistry);
         logger.info("Starting cron job scheduler");
     }
 
@@ -64,7 +74,8 @@ public class CronJobScheduler implements SchedulingConfigurer {
     public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
         this.taskRegistrar = taskRegistrar;
         logger.info("Registering cron jobs");
-        cronJobsService.getActiveCronJobs().forEach(this::scheduleJob);
+        cronJobsService.getActiveCronJobs().forEach(this::doScheduleJob);
+        refreshNextExecutionGauge();
     }
 
     /**
@@ -81,6 +92,11 @@ public class CronJobScheduler implements SchedulingConfigurer {
      * @param cronJob
      */
     public void scheduleJob(CronJob cronJob) {
+        doScheduleJob(cronJob);
+        refreshNextExecutionGauge();
+    }
+
+    private void doScheduleJob(CronJob cronJob) {
         cancel(cronJob);
 
         if (cronJob.isActive()) {
@@ -157,5 +173,29 @@ public class CronJobScheduler implements SchedulingConfigurer {
      */
     public ScheduledTask findScheduleTask(CronJob cronJob) {
         return tasksCache.get(cronJob.getId());
+    }
+
+    /**
+     * Rebuilds the "next execution" gauge from the current set of active
+     * jobs. {@link MultiGauge} has no per-row upsert, so any scheduling
+     * change (job created/updated/deleted, reload) recomputes the whole set
+     * — cheap enough since it only runs on admin actions, not on every tick.
+     */
+    private void refreshNextExecutionGauge() {
+        var rows = cronJobsService.getActiveCronJobs().stream()
+                .map(cj -> MultiGauge.Row.of(
+                        Tags.of(
+                                "job", cj.getName() != null ? cj.getName() : String.valueOf(cj.getId()),
+                                "project", cj.getProject() != null ? cj.getProject().getName() : "unknown"
+                        ),
+                        toEpochSeconds(cj)
+                ))
+                .toList();
+        nextExecutionGauge.register(rows, true);
+    }
+
+    private static double toEpochSeconds(CronJob cronJob) {
+        var next = cronJob.getNextExecutionDateTime();
+        return next != null ? next.atZone(ZoneId.systemDefault()).toEpochSecond() : Double.NaN;
     }
 }
