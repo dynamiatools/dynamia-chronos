@@ -23,9 +23,11 @@ Trabajo de la v1.2.0 en progreso — ver [TASKS.md](TASKS.md) para el detalle.
   timer de duración, gauge de próxima ejecución por job. Actuator expuesto en
   un puerto de management separado (`MANAGEMENT_PORT`, default 9090),
   restringido por red en vez de por login de la app.
+- Health probes de k8s (`/actuator/health/liveness`, `/readiness`), con
+  readiness ampliado para incluir conectividad real a la BD (`db`), no solo
+  el estado de arranque de la app.
 
 ### Planned
-- Health probes (liveness/readiness).
 - Executor/thread-pool configurable vía `application.yml`.
 - Tests de integración con Testcontainers (MySQL).
 

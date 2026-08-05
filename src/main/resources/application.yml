@@ -49,8 +49,24 @@ management:
   endpoints:
     web:
       exposure:
-        # liveness/readiness probe groups are enabled in feature/health-probes
         include: health,prometheus,info
+  endpoint:
+    health:
+      # Exposes /actuator/health/liveness and /actuator/health/readiness,
+      # the two k8s probes should point at.
+      probes:
+        enabled: true
+      group:
+        readiness:
+          # Deliberately widened past Spring Boot's default (readinessState
+          # only): Chronos can't do its one job — running scheduled HTTP
+          # calls and persisting the result — without the DB, so a broken
+          # DB connection should fail readiness and pull the pod out of the
+          # k8s Service, not just leave it marked "started".
+          # DataSourceHealthContributorAutoConfiguration already registers a
+          # "db" indicator backed by a real connection-validation query, no
+          # custom HealthIndicator needed here.
+          include: readinessState,db
   metrics:
     tags:
       application: ${spring.application.name}
