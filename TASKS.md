@@ -108,11 +108,26 @@ añada columnas sigue el patrón ya documentado en `CLAUDE.md`.
 > resto del repo; queda como verificación manual (`curl` al endpoint con la
 > BD caída) y, a futuro, como caso de la suite de `feature/testcontainers-ci`.
 
-### 6. Executor configurable
-- [ ] Externalizar tamaño de thread pool HTTP y timeouts globales a
-      `application.yml` (con defaults sensatos, override vía env var).
-- [ ] Confirmar que `serverTimeout` por job sigue teniendo prioridad sobre el
-      timeout global.
+### 6. Executor configurable — `feature/executor-config`
+- [x] `ChronosHttpExecutorProperties` (`chronos.http.thread-pool-size` /
+      `chronos.http.connect-timeout`, override vía `CHRONOS_HTTP_THREAD_POOL_SIZE`/
+      `CHRONOS_HTTP_CONNECT_TIMEOUT`) + `ChronosHttpClientConfig` que arma un
+      `HttpClient` compartido sobre un `ExecutorService` de tamaño fijo.
+      Reemplaza el `HttpClient.newHttpClient()` que se creaba nuevo (con su
+      propio cached thread pool interno) en **cada** ejecución — antes no
+      había ningún límite al crecimiento de threads bajo un "todos los jobs
+      disparan a las :00".
+- [x] `ChronosHttpRequestExecutor`/`CronJobHttpRequestExecutor` ganan un
+      constructor de 4 args que recibe el `HttpClient`; el de 3 args
+      (compatibilidad hacia atrás, usado por tests y por el envío manual de
+      requests en `RequestItemViewModel`) usa un cliente default lazy,
+      JVM-wide, no gestionado por Spring.
+- [x] Confirmado: `serverTimeout` por job sigue gobernando el timeout de
+      *request/response* (`HttpRequest.Builder.timeout(...)`) sin importar
+      la config del cliente compartido — el `connectTimeout` global es una
+      dimensión distinta (solo el TCP connect). Test
+      `jobServerTimeoutTakesPriorityOverSharedClientConnectTimeout` lo prueba
+      con un server que responde lento pero conecta instantáneo.
 
 ### 7. CI real con Testcontainers
 - [ ] Introducir Testcontainers MySQL en el módulo de test.

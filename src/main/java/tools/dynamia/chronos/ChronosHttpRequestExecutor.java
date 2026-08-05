@@ -23,14 +23,27 @@ public class ChronosHttpRequestExecutor {
     protected final ChronosHttpRequest request;
     protected final Consumer<String> logger;
     protected final List<Variable> variables;
+    protected final HttpClient httpClient;
     private Consumer<HttpRequest> onRequest;
     private Consumer<HttpResponse<String>> onResponse;
 
-
+    /**
+     * Uses a lazily-built, JVM-wide default client (see {@link DefaultHttpClient}).
+     * Fine for one-off/manual usage (e.g. the "send request" UI action, or
+     * tests) — production job execution goes through the 4-arg constructor
+     * with the shared, configurable client instead (see
+     * {@code ChronosHttpClientConfig}), so scheduled executions share one
+     * bounded thread pool rather than each spinning up its own.
+     */
     public ChronosHttpRequestExecutor(ChronosHttpRequest request, List<Variable> variables, Consumer<String> logger) {
+        this(request, variables, logger, DefaultHttpClient.INSTANCE);
+    }
+
+    public ChronosHttpRequestExecutor(ChronosHttpRequest request, List<Variable> variables, Consumer<String> logger, HttpClient httpClient) {
         this.request = request;
         this.variables = requireNonNullElse(variables, Collections.emptyList());
         this.logger = logger;
+        this.httpClient = httpClient;
     }
 
     protected ChronosHttpResponse newResponse() {
@@ -40,50 +53,52 @@ public class ChronosHttpRequestExecutor {
     public ChronosHttpResponse execute() {
         final String url = parseParameters(parseVariables(request.getServerHost()));
         final ChronosHttpResponse response = newResponse();
-        try (HttpClient httpClient = HttpClient.newHttpClient()) {
-            Builder internalRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .timeout(request.getServerTimeout());
+
+        Builder internalRequest = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                // Per-job timeout always wins for the request/response window,
+                // regardless of the shared client's own connectTimeout (TCP
+                // connect only, see ChronosHttpExecutorProperties).
+                .timeout(request.getServerTimeout());
 
 
-            addHeader(internalRequest, "Authorization", request.getServerAuthorization());
-            addHeader(internalRequest, "Content-Type", request.getContentType());
-            if (request instanceof HeadersProvider provider) {
-                requireNonNullElse(provider.getHeaders(),
-                        new HashMap<String, String>())
-                        .forEach((k, v) -> addHeader(internalRequest, k, v));
+        addHeader(internalRequest, "Authorization", request.getServerAuthorization());
+        addHeader(internalRequest, "Content-Type", request.getContentType());
+        if (request instanceof HeadersProvider provider) {
+            requireNonNullElse(provider.getHeaders(),
+                    new HashMap<String, String>())
+                    .forEach((k, v) -> addHeader(internalRequest, k, v));
+        }
+
+        if (request.getRequestBody() != null && !request.getRequestBody().isBlank()) {
+            internalRequest.method(request.getHttpMethod().toString(), HttpRequest.BodyPublishers.ofString(request.getRequestBody(), StandardCharsets.UTF_8));
+        } else {
+            internalRequest.method(request.getHttpMethod().toString(), HttpRequest.BodyPublishers.noBody());
+        }
+
+
+        try {
+            if (onRequest != null) onRequest.accept(internalRequest.build());
+            logger.accept("Executing http request " + url);
+            response.setStartDate(LocalDateTime.now());
+            HttpResponse<String> internalResponse = httpClient.send(internalRequest.build(), HttpResponse.BodyHandlers.ofString());
+            HttpStatus status = HttpStatus.resolve(internalResponse.statusCode());
+            if (status == null) {
+                status = HttpStatus.NO_CONTENT;
             }
 
-            if (request.getRequestBody() != null && !request.getRequestBody().isBlank()) {
-                internalRequest.method(request.getHttpMethod().toString(), HttpRequest.BodyPublishers.ofString(request.getRequestBody(), StandardCharsets.UTF_8));
-            } else {
-                internalRequest.method(request.getHttpMethod().toString(), HttpRequest.BodyPublishers.noBody());
-            }
-
-
-            try {
-                if (onRequest != null) onRequest.accept(internalRequest.build());
-                logger.accept("Executing http request " + url);
-                response.setStartDate(LocalDateTime.now());
-                HttpResponse<String> internalResponse = httpClient.send(internalRequest.build(), HttpResponse.BodyHandlers.ofString());
-                HttpStatus status = HttpStatus.resolve(internalResponse.statusCode());
-                if (status == null) {
-                    status = HttpStatus.NO_CONTENT;
-                }
-
-                response.setStatusCode(status.value());
-                response.setStatus(status.value() + " - " + status.getReasonPhrase());
-                response.setFail(!status.is2xxSuccessful());
-                response.setExecuted(status.is2xxSuccessful());
-                response.setResponse(internalResponse.body());
-                response.setEndDate(LocalDateTime.now());
-                response.setDuration(Duration.between(response.getStartDate(), response.getEndDate()));
-                logger.accept("HTTP Response " + response.getResponse());
-                if (onResponse != null) onResponse.accept(internalResponse);
-            } catch (Exception e) {
-                response.setFail(true);
-                response.setResponse(e.getClass().getSimpleName() + ": " + e.getMessage());
-            }
+            response.setStatusCode(status.value());
+            response.setStatus(status.value() + " - " + status.getReasonPhrase());
+            response.setFail(!status.is2xxSuccessful());
+            response.setExecuted(status.is2xxSuccessful());
+            response.setResponse(internalResponse.body());
+            response.setEndDate(LocalDateTime.now());
+            response.setDuration(Duration.between(response.getStartDate(), response.getEndDate()));
+            logger.accept("HTTP Response " + response.getResponse());
+            if (onResponse != null) onResponse.accept(internalResponse);
+        } catch (Exception e) {
+            response.setFail(true);
+            response.setResponse(e.getClass().getSimpleName() + ": " + e.getMessage());
         }
         return response;
     }
@@ -129,5 +144,17 @@ public class ChronosHttpRequestExecutor {
 
     public void setOnResponse(Consumer<HttpResponse<String>> onResponse) {
         this.onResponse = onResponse;
+    }
+
+    /**
+     * JVM-wide fallback client for callers that don't go through Spring
+     * (tests, the manual "send request" UI action). Built once, lazily, with
+     * the same connect-timeout default as {@code ChronosHttpExecutorProperties}
+     * so behaviour stays consistent even outside the configured bean.
+     */
+    private static final class DefaultHttpClient {
+        static final HttpClient INSTANCE = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(10))
+                .build();
     }
 }

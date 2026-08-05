@@ -26,9 +26,13 @@ Trabajo de la v1.2.0 en progreso — ver [TASKS.md](TASKS.md) para el detalle.
 - Health probes de k8s (`/actuator/health/liveness`, `/readiness`), con
   readiness ampliado para incluir conectividad real a la BD (`db`), no solo
   el estado de arranque de la app.
+- HTTP client compartido y configurable (`chronos.http.thread-pool-size`,
+  `chronos.http.connect-timeout`) para todas las ejecuciones de cron jobs,
+  reemplazando el `HttpClient` nuevo por ejecución que no tenía límite de
+  threads. El `serverTimeout` de cada job sigue mandando sobre el timeout de
+  request/response, sin importar la config global del cliente.
 
 ### Planned
-- Executor/thread-pool configurable vía `application.yml`.
 - Tests de integración con Testcontainers (MySQL).
 
 Nota: se evaluó Flyway para versionar el schema y se descartó — se sigue con

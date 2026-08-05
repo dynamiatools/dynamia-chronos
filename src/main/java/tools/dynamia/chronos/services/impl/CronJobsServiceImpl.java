@@ -15,6 +15,7 @@ import tools.dynamia.domain.services.AbstractService;
 import tools.dynamia.integration.Containers;
 import tools.dynamia.integration.sterotypes.Service;
 
+import java.net.http.HttpClient;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -36,10 +37,12 @@ public class CronJobsServiceImpl extends AbstractService implements CronJobsServ
 
     private final ProjectService projectService;
     private final MeterRegistry meterRegistry;
+    private final HttpClient httpClient;
 
-    public CronJobsServiceImpl(ProjectService projectService, MeterRegistry meterRegistry) {
+    public CronJobsServiceImpl(ProjectService projectService, MeterRegistry meterRegistry, HttpClient httpClient) {
         this.projectService = projectService;
         this.meterRegistry = meterRegistry;
+        this.httpClient = httpClient;
     }
 
     @Override
@@ -71,7 +74,7 @@ public class CronJobsServiceImpl extends AbstractService implements CronJobsServ
         var prefix = testMode ? "[TEST] " : "[JOB] ";
         try {
             var executor = new CronJobHttpRequestExecutor(cronJob, projectService.getVariablesFor(cronJob),
-                    message -> log(prefix + message));
+                    message -> log(prefix + message), httpClient);
 
             // Retries are never applied in test mode: "Test" is meant to give
             // immediate feedback on a single attempt, not to wait out backoff.
