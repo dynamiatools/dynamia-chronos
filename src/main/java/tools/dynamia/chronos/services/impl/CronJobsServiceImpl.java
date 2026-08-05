@@ -18,10 +18,17 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 
 @Service
 public class CronJobsServiceImpl extends AbstractService implements CronJobsService {
 
+    /**
+     * Safety valve for the exponential backoff between retries, regardless
+     * of how a job's retryBackoffMs/maxRetries are configured.
+     */
+    private static final long MAX_BACKOFF_MS = 60_000;
 
     private final ProjectService projectService;
 
@@ -60,20 +67,29 @@ public class CronJobsServiceImpl extends AbstractService implements CronJobsServ
             var executor = new CronJobHttpRequestExecutor(cronJob, projectService.getVariablesFor(cronJob),
                     message -> log(prefix + message));
 
-            var log = executor.execute();
+            // Retries are never applied in test mode: "Test" is meant to give
+            // immediate feedback on a single attempt, not to wait out backoff.
+            int maxAttempts = testMode ? 1 : cronJob.getMaxRetries() + 1;
+            var result = runWithRetry(executor::execute, maxAttempts, cronJob.getRetryBackoffMs(),
+                    (attempt, backoff) -> log(prefix + "Attempt " + attempt + "/" + maxAttempts
+                            + " failed for [" + cronJob.getName() + "], retrying in " + backoff + "ms"));
+            ChronosHttpResponse log = result.response();
+
             if (log instanceof CronJobLog cl) {
                 cl.setTest(testMode);
+                cl.setAttemptCount(result.attempts());
             }
 
+            final ChronosHttpResponse finalLog = log;
             crudService().executeWithinTransaction(() -> {
                 crudService().increaseCounter(cronJob, "executionsCount");
                 crudService().batchUpdate(CronJob.class,
                         MapBuilder.put(
                                 "lastExecution", LocalDateTime.now(),
-                                "status", log.isFail() ? FAILING_STATUS : OK_STATUS
+                                "status", finalLog.isFail() ? FAILING_STATUS : OK_STATUS
                         ),
                         QueryParameters.with("id", cronJob.getId()));
-                crudService().create(log);
+                crudService().create(finalLog);
             });
 
             fireAfterExecutionListener(cronJob, log);
@@ -93,6 +109,67 @@ public class CronJobsServiceImpl extends AbstractService implements CronJobsServ
             crudService().create(errorLog);
             fireAfterExecutionListener(cronJob, errorLog);
             return errorLog;
+        }
+    }
+
+    /**
+     * Outcome of {@link #runWithRetry}: the final response (success, or the
+     * last failure once attempts were exhausted) and how many attempts it took.
+     */
+    record RetryResult(ChronosHttpResponse response, int attempts) {
+    }
+
+    /**
+     * Runs {@code action} up to {@code maxAttempts} times, stopping as soon
+     * as one succeeds. Pure retry/backoff logic, decoupled from persistence
+     * and from the HTTP executor so it can be unit tested on its own.
+     *
+     * @param action      performs one attempt and returns its response
+     * @param maxAttempts total attempts allowed (1 = no retry)
+     * @param backoffMs   base backoff between attempts; see {@link #nextBackoffMs}
+     * @param onRetry     notified with (attempt, backoffMs actually waited) before each retry sleep
+     */
+    static RetryResult runWithRetry(Supplier<ChronosHttpResponse> action, int maxAttempts,
+                                     long backoffMs, BiConsumer<Integer, Long> onRetry) {
+        ChronosHttpResponse response;
+        int attempt = 0;
+        do {
+            attempt++;
+            response = action.get();
+            if (!response.isFail() || attempt >= maxAttempts) {
+                break;
+            }
+            long backoff = nextBackoffMs(backoffMs, attempt);
+            onRetry.accept(attempt, backoff);
+            sleepQuietly(backoff);
+        } while (attempt < maxAttempts);
+        return new RetryResult(response, attempt);
+    }
+
+    /**
+     * Exponential backoff: backoffMs * 2^(attempt-1), e.g. with backoffMs=1000
+     * attempts 1,2,3 wait 1s, 2s, 4s before the next try. Capped so a
+     * misconfigured job can't stall the scheduler thread for too long.
+     *
+     * @param backoffMs base backoff configured on the job; 0 means no wait
+     * @param attempt   the attempt number that just failed (1-based)
+     */
+    static long nextBackoffMs(long backoffMs, int attempt) {
+        if (backoffMs <= 0) {
+            return 0;
+        }
+        long exponential = backoffMs * (1L << Math.min(attempt - 1, 10));
+        return Math.min(exponential, MAX_BACKOFF_MS);
+    }
+
+    private static void sleepQuietly(long millis) {
+        if (millis <= 0) {
+            return;
+        }
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 

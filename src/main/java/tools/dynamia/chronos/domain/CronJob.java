@@ -43,6 +43,19 @@ public class CronJob extends ChronosHttpRequest implements ProjectAware, Headers
     @Column(columnDefinition = "json")
     private String headers;
 
+    /**
+     * Extra attempts made after the first one fails, before giving up and
+     * notifying. 0 (default) keeps today's behaviour: no retry.
+     */
+    private int maxRetries = 0;
+
+    /**
+     * Base backoff between attempts, in milliseconds. Grows exponentially
+     * per attempt (backoffMs * 2^(attempt-1)), capped at 1 minute — see
+     * {@code CronJobsServiceImpl}. 0 (default) means retry immediately.
+     */
+    private long retryBackoffMs = 0;
+
     public CronJob() {
     }
 
@@ -135,6 +148,22 @@ public class CronJob extends ChronosHttpRequest implements ProjectAware, Headers
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public int getMaxRetries() {
+        return maxRetries;
+    }
+
+    public void setMaxRetries(int maxRetries) {
+        this.maxRetries = Math.max(0, maxRetries);
+    }
+
+    public long getRetryBackoffMs() {
+        return retryBackoffMs;
+    }
+
+    public void setRetryBackoffMs(long retryBackoffMs) {
+        this.retryBackoffMs = Math.max(0, retryBackoffMs);
     }
 
     @Override

@@ -40,6 +40,13 @@ public class CronJobScheduler implements SchedulingConfigurer {
      */
     private static final Duration LOCK_SAFETY_MARGIN = Duration.ofSeconds(15);
 
+    /**
+     * Mirrors {@code CronJobsServiceImpl.MAX_BACKOFF_MS}: the cap applied to
+     * each retry's exponential backoff. Used here as a conservative
+     * upper bound on total retry wait time, not as the real backoff value.
+     */
+    private static final Duration MAX_RETRY_BACKOFF = Duration.ofSeconds(60);
+
     private SimpleCache<Long, ScheduledTask> tasksCache = new SimpleCache<>();
     private LoggingService logger = new SLF4JLoggingService(CronJobScheduler.class);
 
@@ -95,12 +102,25 @@ public class CronJobScheduler implements SchedulingConfigurer {
      * @param cronJob
      */
     void executeWithLock(CronJob cronJob) {
-        var lockAtMostFor = cronJob.getServerTimeout().plus(LOCK_SAFETY_MARGIN).compareTo(MIN_LOCK_AT_MOST_FOR) > 0
-                ? cronJob.getServerTimeout().plus(LOCK_SAFETY_MARGIN)
-                : MIN_LOCK_AT_MOST_FOR;
-
-        var lockConfiguration = new LockConfiguration(Instant.now(), "cronjob-" + cronJob.getId(), lockAtMostFor, Duration.ZERO);
+        var lockConfiguration = new LockConfiguration(Instant.now(), "cronjob-" + cronJob.getId(), computeLockAtMostFor(cronJob), Duration.ZERO);
         lockingTaskExecutor.executeWithLock((Runnable) () -> cronJobsService.execute(cronJob), lockConfiguration);
+    }
+
+    /**
+     * Worst-case time a job's execution (including retries, see
+     * {@code CronJob.maxRetries}/{@code retryBackoffMs}) could take, plus a
+     * safety margin — this must never expire before a legitimate retry
+     * sequence finishes, or a second instance could pick up the same job
+     * mid-retry. Deliberately an overestimate: every attempt is assumed to
+     * take the full serverTimeout and every backoff hits the cap, even
+     * though real runs usually finish well before that.
+     */
+    private static Duration computeLockAtMostFor(CronJob cronJob) {
+        int totalAttempts = cronJob.getMaxRetries() + 1;
+        var worstCase = cronJob.getServerTimeout().multipliedBy(totalAttempts)
+                .plus(MAX_RETRY_BACKOFF.multipliedBy(cronJob.getMaxRetries()))
+                .plus(LOCK_SAFETY_MARGIN);
+        return worstCase.compareTo(MIN_LOCK_AT_MOST_FOR) > 0 ? worstCase : MIN_LOCK_AT_MOST_FOR;
     }
 
     /**
