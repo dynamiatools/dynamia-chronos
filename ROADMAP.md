@@ -1,85 +1,95 @@
 # Roadmap
 
-Plan de dos fases. Fase 1 (v1.2.0) es deuda técnica y plomería: sin eso, la Fase 2
-se construye sobre una base que no escala horizontalmente y sin control de schema.
-Fase 2 (v1.3.0 → v1.5.0) son features visibles y el empaquetado Docker formal.
+Two-phase plan. Phase 1 (v1.2.0) is technical debt and plumbing: without it,
+Phase 2 gets built on a foundation that doesn't scale horizontally and has no
+schema control. Phase 2 (v1.3.0 → v1.5.0) is user-facing features and formal
+Docker packaging.
 
-Estado actual: `1.1.0`. Sin releases etiquetados en git todavía (`git tag` vacío).
+Current status: `1.2.0` (released). No git tags yet (`git tag` is empty).
 
 ---
 
-## v1.2.0 — Escalabilidad y preparación (sin features de usuario)
+## v1.2.0 — Scalability and groundwork (no user-facing features) ✅ DONE
 
-Objetivo: que Chronos pueda correr en 2+ réplicas sin duplicar ejecuciones, y que
-cualquier feature de la Fase 2 tenga dónde pararse (schema versionado, métricas,
-retry hook, executor configurable).
+Goal: get Chronos to run on 2+ replicas without duplicating executions, and
+give any Phase 2 feature something to stand on (versioned schema, metrics,
+retry hook, configurable executor).
 
-| # | Item | Por qué | Riesgo si se omite |
-|---|------|---------|---------------------|
-| 1 | **Distributed locking** en `CronJobScheduler` vía [ShedLock](https://github.com/lukas-krecan/ShedLock) (Apache 2.0, ya piensa en Spring `@Scheduled`) | Hoy el scheduling vive en `SimpleCache<Long, ScheduledTask>` en memoria, por instancia. 2 réplicas = mismo job disparado 2 veces | Ejecuciones y notificaciones duplicadas en cualquier despliegue multi-pod |
-| 2 | **Retry/backoff** configurable por `CronJob` (`maxRetries`, `backoffMs`) en `CronJobsServiceImpl.execute()` | Hoy un fallo de red se loguea y notifica, sin reintento | Falsos positivos de "servicio caído" por timeouts transitorios |
-| 3 | ~~Migración de schema versionada (Flyway)~~ — **descartado**, se sigue con `hibernate.ddl-auto=update` | Decisión explícita: mantener el flujo actual, sin herramienta de migraciones | Drift de schema entre entornos sigue siendo responsabilidad manual (ver nota abajo) |
-| 4 | **Observabilidad**: Actuator + Micrometer + endpoint Prometheus, métricas custom (`chronos_execution_duration_seconds`, `chronos_executions_total`, `chronos_next_execution_timestamp`) | Prerequisito para dashboards de analítica (v1.3) y para operar en k8s | Cero visibilidad de salud del scheduler en producción |
-| 5 | **Health probes** (`/actuator/health/liveness`, `/readiness`) | Requerido por k8s readiness/liveness antes de formalizar despliegue Docker (v1.5) | Rolling deploys sin probes = downtime en despliegues |
-| 6 | **Executor/thread-pool configurable** vía `application.yml` (tamaño de pool HTTP, timeouts globales) | Prepara el terreno para rate limiting por proyecto (v1.3/1.4) | Un tenant con muchos cron jobs puede saturar el pool compartido |
-| 7 | **Tests de integración con Testcontainers (MySQL)** para scheduler + locking + retry | `DynamiaChronosApplicationTests` hoy exige una BD real alcanzable — bloquea CI. Testcontainers desbloquea GitHub Actions real | Sin CI real, cada feature nueva se valida solo a mano |
+| # | Item | Why | Risk if skipped |
+|---|------|-----|------------------|
+| 1 | **Distributed locking** in `CronJobScheduler` via [ShedLock](https://github.com/lukas-krecan/ShedLock) (Apache 2.0, already designed for Spring `@Scheduled`) | Scheduling today lives in an in-memory `SimpleCache<Long, ScheduledTask>`, per instance. 2 replicas = the same job fired twice | Duplicate executions and notifications on any multi-pod deployment |
+| 2 | **Retry/backoff** configurable per `CronJob` (`maxRetries`, `backoffMs`) in `CronJobsServiceImpl.execute()` | A network failure today gets logged and notified, no retry | False "service down" positives from transient timeouts |
+| 3 | ~~Versioned schema migrations (Flyway)~~ — **dropped**, staying on `hibernate.ddl-auto=update` | Explicit decision: keep the current flow, no migration tool | Schema drift across environments stays a manual concern (see note below) |
+| 4 | **Observability**: Actuator + Micrometer + Prometheus endpoint, custom metrics (`chronos_execution_duration_seconds`, `chronos_executions_total`, `chronos_next_execution_timestamp`) | Prerequisite for the analytics dashboard (v1.3) and for operating in k8s | Zero visibility into scheduler health in production |
+| 5 | **Health probes** (`/actuator/health/liveness`, `/readiness`) | Required by k8s readiness/liveness before formalizing the Docker deployment (v1.5) | Rolling deploys without probes = downtime on every deploy |
+| 6 | **Configurable executor/thread pool** via `application.yml` (HTTP pool size, global timeouts) | Lays the groundwork for per-project rate limiting (v1.3/1.4) | A tenant with many cron jobs can saturate the shared pool |
+| 7 | **Integration tests with Testcontainers (MySQL)** for scheduler + locking + retry | `DynamiaChronosApplicationTests` used to require a reachable real DB — blocked CI. Testcontainers unblocks real GitHub Actions | Without real CI, every new feature is only validated by hand |
 
-**No entra en 1.2.0:** Dockerfile formal (ya existe soporte vía Cloud Native
-Buildpacks, ver README) — se formaliza en v1.5.0 junto al resto de deployment.
+**Not in 1.2.0:** a formal Dockerfile (Cloud Native Buildpacks support already
+exists, see README) — that's formalized in v1.5.0 alongside the rest of
+deployment.
 
-> **Nota sobre schema:** se descartó Flyway a propósito — se sigue con
-> `hibernate.ddl-auto=update` tal como está hoy. Cada feature que añada
-> columnas/tablas (retry, workflows, batches) sigue el patrón ya establecido
-> en `CLAUDE.md` (`@Column(columnDefinition = "json")` + getters/setters para
-> mapas). Sin rollback automático de schema — si se necesita revertir un campo
-> en producción, es manual.
+> **Note on schema:** Flyway was deliberately dropped — staying on
+> `hibernate.ddl-auto=update` as-is today. Any feature adding
+> columns/tables (retry, workflows, batches) follows the pattern already
+> established in `CLAUDE.md` (`@Column(columnDefinition = "json")` +
+> getters/setters for maps). No automatic schema rollback — reverting a
+> field in production is manual.
 
-**Flujo de trabajo:** cada item de esta tabla (y cada feature de v1.3+) se
-desarrolla en su propia rama (`feature/<nombre-corto>`), no directo sobre `main`.
+**Workflow:** every item in this table (and every v1.3+ feature) is
+developed on its own branch (`feature/<short-name>`), never directly on
+`main`.
+
+**Status:** all 6 items (1, 2, 4, 5, 6, 7) shipped, merged into
+`integration/v1.2.0`, verified with a green 48/48 test run — including
+`DynamiaChronosApplicationTests` booting the full Spring context against
+real MySQL via Testcontainers. Pending: merge `integration/v1.2.0` into
+`main`.
 
 ---
 
 ## v1.3.0 — Reliability-facing features
 
-Construye directamente sobre la plomería de 1.2.0.
+Builds directly on the v1.2.0 plumbing.
 
-- **UI de retry**: exponer `maxRetries`/`backoffMs` en `cronjob.zul` / `CronJobForm.yml`.
-- **Workflows simples**: `dependsOnJobId` + condición (success/failure) en `CronJob`,
-  reutilizando `CronJobExecutionListener` para encadenar ejecuciones.
-- **Dashboard analítico v1**: éxito/fallo y duración por proyecto, usando
-  `CronJobLog` ya persistido (gráficas embebidas, sin nueva infra).
+- **Retry UI**: expose `maxRetries`/`backoffMs` in `cronjob.zul` / `CronJobForm.yml`.
+- **Simple workflows**: `dependsOnJobId` + condition (success/failure) on
+  `CronJob`, reusing `CronJobExecutionListener` to chain executions.
+- **Analytics dashboard v1**: success/failure and duration per project, using
+  the already-persisted `CronJobLog` (embedded charts, no new infra).
 
-## v1.4.0 — UI refresh + nuevo login (rediseño visual)
+## v1.4.0 — UI refresh + new login (visual redesign)
 
-Alcance de login confirmado: **solo rediseño visual**, mismo mecanismo de auth de
-`tools.dynamia.modules.security.ui` (usuario/password propio). Sin OAuth2/SSO/passkeys
-en este alcance — queda como ítem de backlog separado si se necesita más adelante.
+Login scope confirmed: **visual redesign only**, same auth mechanism as
+`tools.dynamia.modules.security.ui` (own username/password). No
+OAuth2/SSO/passkeys in this scope — stays a separate backlog item if needed
+later.
 
-- Rediseño de la página de login (branding, dark mode, mejor UX) sin tocar el
-  backend de autenticación.
-- Refresh de UI general (tema ZK, dashboard, árbol de proyectos).
-- **Batches**: agrupar N `CronJob`s con notificación agregada al completar todos.
-- **Firma HMAC** en webhooks salientes de notificación (seguridad, diferenciador
-  frente a JobRunr OSS).
+- Login page redesign (branding, dark mode, better UX) without touching the
+  auth backend.
+- General UI refresh (ZK theme, dashboard, project tree).
+- **Batches**: group N `CronJob`s with an aggregate notification once all
+  complete.
+- **HMAC signing** on outgoing notification webhooks (security,
+  differentiator against JobRunr OSS).
 
-## v1.5.0 — Despliegue Docker formal
+## v1.5.0 — Formal Docker deployment
 
-- `Dockerfile` multi-stage explícito (build con `mvnw` + runtime JRE slim) como
-  alternativa a Buildpacks, para quienes quieren build reproducible sin daemon
-  de buildpacks.
-- `docker-compose.yml` de referencia (Chronos + MySQL/Percona).
-- Publicación de imagen a GHCR/Docker Hub vía CI.
-- Documentación de despliegue (k8s manifest de ejemplo usando los health
-  probes de v1.2.0).
+- Explicit multi-stage `Dockerfile` (build with `mvnw` + slim JRE runtime) as
+  an alternative to Buildpacks, for anyone wanting a reproducible build
+  without the buildpacks daemon.
+- Reference `docker-compose.yml` (Chronos + MySQL/Percona).
+- Image publishing to GHCR/Docker Hub via CI.
+- Deployment docs (example k8s manifest using the v1.2.0 health probes).
 
 ---
 
-## Fuera de alcance (decidido, no se persigue)
+## Out of scope (decided, not pursued)
 
-- **Priority queues / autoscaling de workers** (tipo JobRunr Pro): no aplica —
-  Chronos no ejecuta processing propio, dispara HTTP con timeout. No hay cola
-  de trabajo pesado que priorizar.
-- **External job tracking** (aprobación humana, GPU inference): fuera del
-  producto — Chronos dispara HTTP, no ejecuta processing.
-- **SSO/OAuth2/passkeys**: descartado explícitamente para v1.4.0 (ver arriba).
-  Revisar como ítem propio si un cliente enterprise lo pide.
+- **Priority queues / worker autoscaling** (JobRunr Pro-style): doesn't apply —
+  Chronos doesn't run its own processing, it fires HTTP calls with a timeout.
+  There's no heavy-work queue to prioritize.
+- **External job tracking** (human approval, GPU inference): out of scope for
+  the product — Chronos fires HTTP, it doesn't run processing.
+- **SSO/OAuth2/passkeys**: explicitly dropped for v1.4.0 (see above). Revisit
+  as its own item if an enterprise customer asks for it.

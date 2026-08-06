@@ -1,216 +1,217 @@
 # Tasks
 
-Checklist accionable por versión. Ver [ROADMAP.md](ROADMAP.md) para el contexto/porqué
-de cada item y [CHANGELOG.md](CHANGELOG.md) para lo ya entregado.
+Actionable checklist per version. See [ROADMAP.md](ROADMAP.md) for the
+why/context of each item and [CHANGELOG.md](CHANGELOG.md) for what's already
+shipped.
 
-Convención: `[ ]` pendiente, `[~]` en progreso, `[x]` hecho.
+Convention: `[ ]` pending, `[~]` in progress, `[x]` done.
 
-Cada item numerado de v1.2.0 y cada feature de v1.3+ vive en su propia rama
-`feature/<nombre-corto>` (ver mapeo de ramas al final del archivo), nunca
-directo sobre `main`.
+Every numbered v1.2.0 item (and every v1.3+ feature) lives on its own branch
+(`feature/<short-name>`, see the branch map at the end of this file), never
+directly on `main`.
 
 ---
 
-## v1.2.0 — Escalabilidad y preparación ✅ COMPLETO
+## v1.2.0 — Scalability and groundwork ✅ COMPLETE
 
-Todas las ramas mergeadas a `integration/v1.2.0` (1→7, item 3 descartado por
-decisión). Suite completa verde (48/48, incluyendo
-`DynamiaChronosApplicationTests` contra MySQL real vía Testcontainers).
-Pendiente: mergear `integration/v1.2.0` a `main`.
+All branches merged into `integration/v1.2.0` (1→7, item 3 dropped by
+decision). Full suite green (48/48), including
+`DynamiaChronosApplicationTests` against real MySQL via Testcontainers.
+Pending: merge `integration/v1.2.0` into `main`.
 
 ### 1. Distributed locking (scheduler) — `feature/scheduler-distributed-lock`
-- [x] Agregar dependencia `shedlock-spring` + `shedlock-provider-jdbc-template` (7.7.0).
-- [x] Crear tabla `shedlock` vía `src/main/resources/schema.sql`
-      (`CREATE TABLE IF NOT EXISTS`, `spring.sql.init.mode: always`) — sin
-      Flyway, consistente con la decisión de seguir con `ddl-auto: update`.
-- [x] Envolver la ejecución programada en `CronJobScheduler`. Nota de diseño:
-      los jobs se registran dinámicamente vía `ScheduledTaskRegistrar`
-      (cron expression por entidad, no un método fijo), así que `@SchedulerLock`
-      (AOP sobre métodos anotados) no aplica — se usó la API programática
-      (`LockingTaskExecutor`/`DefaultLockingTaskExecutor`) en
-      `CronJobScheduler.executeWithLock()`. `lockAtMostFor` = `serverTimeout`
-      del job + 15s de margen, con piso de 30s; `lockAtLeastFor` = 0.
-- [x] Test de instancias simuladas: `CronJobSchedulerLockTest` levanta 2
-      `CronJobScheduler` (2 `LockProvider` independientes) contra la misma
-      tabla `shedlock` en H2 in-memory y dispara `executeWithLock` en paralelo
-      → solo una ejecuta el job. No requiere MySQL real (eso queda para la
-      suite de Testcontainers de `feature/testcontainers-ci`).
+- [x] Added `shedlock-spring` + `shedlock-provider-jdbc-template` (7.7.0) dependency.
+- [x] Created the `shedlock` table via `src/main/resources/schema.sql`
+      (`CREATE TABLE IF NOT EXISTS`, `spring.sql.init.mode: always`) — no
+      Flyway, consistent with the decision to stay on `ddl-auto: update`.
+- [x] Wrapped scheduled execution in `CronJobScheduler`. Design note: jobs
+      are registered dynamically via `ScheduledTaskRegistrar` (per-entity
+      cron expression, not a fixed method), so `@SchedulerLock` (AOP over
+      annotated methods) doesn't apply — used the programmatic API
+      (`LockingTaskExecutor`/`DefaultLockingTaskExecutor`) in
+      `CronJobScheduler.executeWithLock()` instead. `lockAtMostFor` =
+      job's `serverTimeout` + 15s margin, floored at 30s; `lockAtLeastFor` = 0.
+- [x] Simulated-instances test: `CronJobSchedulerLockTest` spins up 2
+      `CronJobScheduler`s (2 independent `LockProvider`s) against the same
+      `shedlock` table on in-memory H2, firing `executeWithLock` in parallel
+      → only one executes the job. Doesn't need real MySQL (that's covered
+      by the Testcontainers suite in `feature/testcontainers-ci`).
 
 ### 2. Retry / backoff — `feature/cronjob-retry-backoff`
-- [x] Columnas `maxRetries` (int, default 0) y `retryBackoffMs` (long, default
-      0) en `CronJob`, con setters que clampean negativos a 0.
-- [x] Lógica de reintento en `CronJobsServiceImpl`: extraída a
-      `runWithRetry(...)`, un método estático puro (sin `crudService()`)
-      desacoplado de la persistencia y del executor — reintenta mientras
-      `response.isFail()` y queden intentos. Backoff **exponencial**
-      (`backoffMs * 2^(attempt-1)`, cap de 60s) vía `nextBackoffMs(...)`.
-      Test mode (`test()`) nunca reintenta — feedback inmediato de un solo intento.
-- [x] `CronJobLog.attemptCount` registra cuántos intentos tomó (1 = sin
-      reintento). Un solo row de log por trigger, no uno por intento fallido.
-- [x] Notificación (`fireAfterExecutionListener`) sigue disparándose una sola
-      vez, después de agotar reintentos o del éxito — nunca en intentos
-      intermedios, porque el loop vive antes del punto donde se dispara.
-- [x] Tests: `CronJobsServiceImplRetryTest` (0 reintentos, éxito en intento k,
-      reintentos agotados, backoff exponencial con cap) + `CronJobTest`
-      (defaults, clamping de negativos).
+- [x] `maxRetries` (int, default 0) and `retryBackoffMs` (long, default 0)
+      columns on `CronJob`, with setters that clamp negatives to 0.
+- [x] Retry logic in `CronJobsServiceImpl`: extracted into `runWithRetry(...)`,
+      a pure static method (no `crudService()`) decoupled from persistence
+      and from the executor — retries while `response.isFail()` and attempts
+      remain. **Exponential** backoff (`backoffMs * 2^(attempt-1)`, capped
+      at 60s) via `nextBackoffMs(...)`. Test mode (`test()`) never retries —
+      immediate single-attempt feedback.
+- [x] `CronJobLog.attemptCount` records how many attempts it took (1 = no
+      retry). Still one log row per trigger, not one per failed attempt.
+- [x] Notification (`fireAfterExecutionListener`) still fires exactly once,
+      after retries are exhausted or on success — never on intermediate
+      attempts, because the loop runs before the point where it fires.
+- [x] Tests: `CronJobsServiceImplRetryTest` (no retry, success at attempt k,
+      exhausted retries, exponential backoff with cap) + `CronJobTest`
+      (defaults, negative clamping).
 
-> **Nota para la integración con `feature/scheduler-distributed-lock`:** los
-> reintentos alargan la duración total de una ejecución más allá de
-> `serverTimeout`. Al mergear ambas ramas, `CronJobScheduler.executeWithLock`
-> debe calcular `lockAtMostFor` sobre `serverTimeout * (maxRetries + 1) +
-> backoff total`, no solo `serverTimeout` — si no, ShedLock puede soltar el
-> lock antes de que termine el último reintento.
+> **Note for integration with `feature/scheduler-distributed-lock`:**
+> retries extend a run's total duration beyond `serverTimeout`. When
+> merging both branches, `CronJobScheduler.executeWithLock` must compute
+> `lockAtMostFor` from `serverTimeout * (maxRetries + 1) + total backoff`,
+> not just `serverTimeout` — otherwise ShedLock could release the lock
+> before the last retry finishes.
 
-### 3. ~~Migraciones versionadas (Flyway)~~ — descartado
-Se mantiene `hibernate.ddl-auto=update`. Sin tasks aquí; cada feature que
-añada columnas sigue el patrón ya documentado en `CLAUDE.md`.
+### 3. ~~Versioned migrations (Flyway)~~ — dropped
+Staying on `hibernate.ddl-auto=update`. No tasks here; any feature adding
+columns follows the pattern already documented in `CLAUDE.md`.
 
-### 4. Observabilidad — `feature/observability-metrics`
-- [x] `spring-boot-starter-actuator` ya estaba; se agregó `micrometer-registry-prometheus`.
-- [x] `/actuator/prometheus` expuesto — **decisión**: Actuator corre en su
-      propio puerto (`management.server.port`, default 9090 vía
-      `MANAGEMENT_PORT`), separado de `server.port`. No se aseguró detrás del
-      login de la app: se restringe por red (sin ingress público / Service de
-      k8s solo intra-cluster), no con auth. `include: health,prometheus,info`.
-- [x] Métricas custom:
-      - Contador `chronos_cronjob_executions_total{project,result}` — por
-        proyecto y resultado (success/failure), en `CronJobsServiceImpl`.
+### 4. Observability — `feature/observability-metrics`
+- [x] `spring-boot-starter-actuator` was already present; added
+      `micrometer-registry-prometheus`.
+- [x] `/actuator/prometheus` exposed — **decision**: Actuator runs on its own
+      port (`management.server.port`, default 9090 via `MANAGEMENT_PORT`),
+      separate from `server.port`. Not secured behind the app's login:
+      restricted by network instead (no public ingress / intra-cluster-only
+      k8s Service). `include: health,prometheus,info`.
+- [x] Custom metrics:
+      - Counter `chronos_cronjob_executions_total{project,result}` — per
+        project and result (success/failure), in `CronJobsServiceImpl`.
       - Timer `chronos_cronjob_execution_duration_seconds{project}`.
       - Gauge `chronos_cronjob_next_execution_timestamp_seconds{job,project}`
-        vía `MultiGauge` en `CronJobScheduler`, recalculado en cada cambio de
-        scheduling (no hay upsert por fila en `MultiGauge`, se recalcula el
-        set completo — barato porque solo corre en altas/bajas/updates de
-        jobs, no en cada tick).
-      - Ejecuciones en modo Test (acción "Test") se excluyen de las métricas
-        para no ensuciar success-rate/duración reales.
-- [x] Tests: `CronJobTest` (nuevos casos para `getNextExecutionDateTime()`).
-      El registro efectivo de métricas (`recordMetrics`) no tiene test unitario
-      propio — depende de `crudService()`/contexto Spring como el resto de
-      `CronJobsServiceImpl`; queda cubierto por verificación manual y, más
-      adelante, por la suite de `feature/testcontainers-ci`.
+        via `MultiGauge` in `CronJobScheduler`, recomputed on every
+        scheduling change (`MultiGauge` has no per-row upsert, the whole set
+        gets rebuilt — cheap since it only runs on job create/update/delete,
+        not on every tick).
+      - Test-mode runs (the "Test" action) are excluded from metrics so
+        manual pokes don't skew real success-rate/duration numbers.
+- [x] Tests: `CronJobTest` (new cases for `getNextExecutionDateTime()`).
+      Actual metrics recording (`recordMetrics`) has no dedicated unit test —
+      it depends on `crudService()`/Spring context like the rest of
+      `CronJobsServiceImpl`; covered by manual verification and, later, by
+      the `feature/testcontainers-ci` suite.
 
 ### 5. Health probes — `feature/health-probes`
-- [x] `management.endpoint.health.probes.enabled=true` → expone
-      `/actuator/health/liveness` y `/actuator/health/readiness`.
-- [x] Readiness ampliado más allá del default de Spring Boot
-      (`readinessState` solo): `group.readiness.include: readinessState,db`.
-      Decisión explícita — Chronos no puede cumplir su función (correr jobs
-      HTTP y persistir el resultado) sin BD, así que una BD caída debe sacar
-      el pod del Service de k8s, no solo marcarlo "started". El indicador
-      `db` ya lo trae gratis `DataSourceHealthContributorAutoConfiguration`
-      (query real de validación de conexión) — no hizo falta HealthIndicator
-      custom.
-- [x] Vive en el mismo puerto de management separado que
-      `feature/observability-metrics` (mismo bloque `management:`, a
-      reconciliar al integrar ambas ramas).
-- [ ] Ejemplo de manifest k8s con estos probes: diferido a
-      `feature/docker-deployment` (v1.5.0), donde vive el resto del manifest.
+- [x] `management.endpoint.health.probes.enabled=true` → exposes
+      `/actuator/health/liveness` and `/actuator/health/readiness`.
+- [x] Readiness widened past Spring Boot's default (`readinessState` only):
+      `group.readiness.include: readinessState,db`. Explicit decision —
+      Chronos can't do its job (running HTTP jobs and persisting the
+      result) without the DB, so a broken DB should pull the pod out of the
+      k8s Service, not just leave it marked "started". The `db` indicator
+      comes for free from `DataSourceHealthContributorAutoConfiguration`
+      (a real connection-validation query) — no custom HealthIndicator needed.
+- [x] Lives on the same separate management port as
+      `feature/observability-metrics` (same `management:` block, reconciled
+      when both branches were integrated).
+- [ ] Example k8s manifest with these probes: deferred to
+      `feature/docker-deployment` (v1.5.0), where the rest of the manifest lives.
 
-> **Nota:** esta feature es 100% configuración (`application.yml`), sin
-> código Java. Verificar que readiness realmente cae cuando la BD no
-> responde requiere un contexto Spring + Actuator + BD real levantados —
-> no hay forma honesta de cubrirlo con un test unitario puro como los del
-> resto del repo; queda como verificación manual (`curl` al endpoint con la
-> BD caída) y, a futuro, como caso de la suite de `feature/testcontainers-ci`.
+> **Note:** this feature is 100% configuration (`application.yml`), no Java
+> code. Verifying that readiness actually flips when the DB stops responding
+> needs a real Spring + Actuator + DB context up — there's no honest way to
+> cover that with a pure unit test like the rest of the repo; it stays a
+> manual check (`curl` the endpoint with the DB down) and, eventually, a case
+> in the `feature/testcontainers-ci` suite.
 
-### 6. Executor configurable — `feature/executor-config`
+### 6. Configurable executor — `feature/executor-config`
 - [x] `ChronosHttpExecutorProperties` (`chronos.http.thread-pool-size` /
-      `chronos.http.connect-timeout`, override vía `CHRONOS_HTTP_THREAD_POOL_SIZE`/
-      `CHRONOS_HTTP_CONNECT_TIMEOUT`) + `ChronosHttpClientConfig` que arma un
-      `HttpClient` compartido sobre un `ExecutorService` de tamaño fijo.
-      Reemplaza el `HttpClient.newHttpClient()` que se creaba nuevo (con su
-      propio cached thread pool interno) en **cada** ejecución — antes no
-      había ningún límite al crecimiento de threads bajo un "todos los jobs
-      disparan a las :00".
-- [x] `ChronosHttpRequestExecutor`/`CronJobHttpRequestExecutor` ganan un
-      constructor de 4 args que recibe el `HttpClient`; el de 3 args
-      (compatibilidad hacia atrás, usado por tests y por el envío manual de
-      requests en `RequestItemViewModel`) usa un cliente default lazy,
-      JVM-wide, no gestionado por Spring.
-- [x] Confirmado: `serverTimeout` por job sigue gobernando el timeout de
-      *request/response* (`HttpRequest.Builder.timeout(...)`) sin importar
-      la config del cliente compartido — el `connectTimeout` global es una
-      dimensión distinta (solo el TCP connect). Test
-      `jobServerTimeoutTakesPriorityOverSharedClientConnectTimeout` lo prueba
-      con un server que responde lento pero conecta instantáneo.
+      `chronos.http.connect-timeout`, overridable via
+      `CHRONOS_HTTP_THREAD_POOL_SIZE`/`CHRONOS_HTTP_CONNECT_TIMEOUT`) +
+      `ChronosHttpClientConfig` building a shared `HttpClient` over a
+      fixed-size `ExecutorService`. Replaces the `HttpClient.newHttpClient()`
+      that was created fresh (with its own internal cached thread pool) on
+      **every** execution — there used to be no cap on thread growth under
+      an "every job fires at :00" spike.
+- [x] `ChronosHttpRequestExecutor`/`CronJobHttpRequestExecutor` gain a 4-arg
+      constructor taking the `HttpClient`; the 3-arg one (backward
+      compatibility, used by tests and by the manual "send request" action in
+      `RequestItemViewModel`) uses a lazy, JVM-wide default client, not
+      Spring-managed.
+- [x] Confirmed: per-job `serverTimeout` still governs the
+      *request/response* timeout (`HttpRequest.Builder.timeout(...)`)
+      regardless of the shared client's config — the global `connectTimeout`
+      is a different dimension (TCP connect only). Test
+      `jobServerTimeoutTakesPriorityOverSharedClientConnectTimeout` proves
+      it with a server that responds slowly but connects instantly.
 
-### 7. CI real con Testcontainers — `feature/testcontainers-ci`
-- [x] Testcontainers MySQL introducido: `spring-boot-testcontainers` +
-      `org.testcontainers:junit-jupiter`/`mysql`. **Nota de versión**: el
-      `testcontainers.version` que trae el parent de Spring Boot (2.0.5) no
-      tiene publicados los módulos `junit-jupiter`/`mysql` todavía — se
-      pineó la property a `1.21.4` (la última que sí los publica) en el
-      `<properties>` del propio pom, no por dependencia individual, para que
-      `testcontainers-core` y los módulos queden en la misma versión. Revisar
-      al hacer bump de dynamiatools/Spring Boot si 2.x ya los publicó.
-- [x] `DynamiaChronosApplicationTests` ahora usa `@Testcontainers` +
-      `@Container` + `@ServiceConnection` sobre un `MySQLContainer` — ya no
-      depende de `DATABASE_URL`/una BD externa alcanzable, solo de un daemon
-      Docker. Verificado corriendo localmente: bootea el contexto completo
-      contra MySQL real (~16-40s con el pull de la imagen).
-- [x] GitHub Actions (`.github/workflows/ci.yml`): `./mvnw test` en cada push
-      a `main` y en cada PR, sobre `ubuntu-latest` (Docker viene preinstalado,
-      no hace falta provisionar nada aparte).
-- [x] `CLAUDE.md` actualizado: la nota de "necesita BD externa reachable" para
-      `DynamiaChronosApplicationTests` ya no aplica.
+### 7. Real CI with Testcontainers — `feature/testcontainers-ci`
+- [x] Testcontainers MySQL introduced: `spring-boot-testcontainers` +
+      `org.testcontainers:junit-jupiter`/`mysql`. **Version note**: the
+      `testcontainers.version` pulled in by the Spring Boot parent (2.0.5)
+      doesn't have the `junit-jupiter`/`mysql` modules published yet — pinned
+      the property to `1.21.4` (the latest that does) in the pom's own
+      `<properties>`, not per-dependency, so `testcontainers-core` and the
+      modules stay on the same version. Revisit when bumping
+      dynamiatools/Spring Boot, in case 2.x has published them by then.
+- [x] `DynamiaChronosApplicationTests` now uses `@Testcontainers` +
+      `@Container` + `@ServiceConnection` on a `MySQLContainer` — no longer
+      depends on `DATABASE_URL`/a reachable external DB, just a Docker
+      daemon. Verified running locally: boots the full context against real
+      MySQL (~16-40s including the image pull).
+- [x] GitHub Actions (`.github/workflows/ci.yml`): `./mvnw test` on every
+      push to `main` and on every PR, on `ubuntu-latest` (Docker comes
+      preinstalled, nothing else to provision).
+- [x] `CLAUDE.md` updated: the "needs a reachable external DB" note for
+      `DynamiaChronosApplicationTests` no longer applies.
 
 ---
 
 ## v1.3.0 — Reliability-facing features
 
-- [ ] UI: campos `maxRetries`/`backoffMs` en `cronjob.zul` y `CronJobForm.yml`.
-- [ ] Modelo: columna `depends_on_job_id` (nullable) + condición
-      (`ON_SUCCESS`/`ON_FAILURE`) en `CronJob`.
-- [ ] `CronJobExecutionListener`: al completar un job, evaluar si dispara jobs
-      dependientes.
-- [ ] Guardas contra ciclos en la cadena de dependencias (validación al guardar).
-- [ ] Dashboard: vista de tasa de éxito y duración (percentiles) por proyecto,
-      usando `CronJobLog`.
+- [ ] UI: `maxRetries`/`backoffMs` fields in `cronjob.zul` and `CronJobForm.yml`.
+- [ ] Model: `depends_on_job_id` column (nullable) + condition
+      (`ON_SUCCESS`/`ON_FAILURE`) on `CronJob`.
+- [ ] `CronJobExecutionListener`: on job completion, evaluate whether to fire
+      dependent jobs.
+- [ ] Guards against cycles in the dependency chain (validated on save).
+- [ ] Dashboard: success-rate and duration (percentiles) view per project,
+      using `CronJobLog`.
 
-## v1.4.0 — UI refresh + login (rediseño visual)
+## v1.4.0 — UI refresh + login (visual redesign)
 
-- [ ] Rediseño de la página de login (branding, dark mode) — sin tocar
-      `tools.dynamia.modules.security.ui` como mecanismo de auth.
-- [ ] Refresh de tema ZK en dashboard y árbol de proyectos.
-- [ ] Batches: entidad/agrupación de `CronJob`s con notificación agregada al
-      completar todos los jobs del batch.
-- [ ] Firma HMAC en payloads de `WebhookNotificationSender` (header
-      `X-Chronos-Signature`, secreto configurable por notificador).
+- [ ] Login page redesign (branding, dark mode) — without touching
+      `tools.dynamia.modules.security.ui` as the auth mechanism.
+- [ ] ZK theme refresh on the dashboard and project tree.
+- [ ] Batches: `CronJob` grouping entity with an aggregate notification once
+      all jobs in the batch complete.
+- [ ] HMAC signing on `WebhookNotificationSender` payloads
+      (`X-Chronos-Signature` header, secret configurable per notificator).
 
-## v1.5.0 — Despliegue Docker formal
+## v1.5.0 — Formal Docker deployment
 
-- [ ] `Dockerfile` multi-stage (build `mvnw package` → runtime JRE slim).
-- [ ] `docker-compose.yml` de referencia (Chronos + MySQL/Percona).
-- [ ] Pipeline CI para build + push de imagen a GHCR/Docker Hub en release.
-- [ ] Manifest k8s de ejemplo (Deployment + probes de v1.2.0 + Service).
-- [ ] Actualizar README: sección Docker con Dockerfile explícito como
-      alternativa a Buildpacks.
-
----
-
-## Fuera de alcance (no crear tasks para esto salvo que cambie la decisión)
-
-- Priority queues / autoscaling de workers.
-- External job tracking (aprobación humana, GPU inference).
-- SSO/OAuth2/passkeys en login (revisar como iniciativa aparte si aplica).
-- Flyway / migraciones versionadas — se sigue con `hibernate.ddl-auto=update`.
+- [ ] Multi-stage `Dockerfile` (build `mvnw package` → slim JRE runtime).
+- [ ] Reference `docker-compose.yml` (Chronos + MySQL/Percona).
+- [ ] CI pipeline to build + push the image to GHCR/Docker Hub on release.
+- [ ] Example k8s manifest (Deployment + v1.2.0 probes + Service).
+- [ ] Update README: Docker section with an explicit Dockerfile as an
+      alternative to Buildpacks.
 
 ---
 
-## Mapeo rama → item
+## Out of scope (don't create tasks for this unless the decision changes)
 
-| Rama | Item |
-|------|------|
+- Priority queues / worker autoscaling.
+- External job tracking (human approval, GPU inference).
+- SSO/OAuth2/passkeys on login (revisit as a separate initiative if needed).
+- Flyway / versioned migrations — staying on `hibernate.ddl-auto=update`.
+
+---
+
+## Branch → item map
+
+| Branch | Item |
+|--------|------|
 | `feature/scheduler-distributed-lock` | v1.2.0 #1 — ShedLock |
 | `feature/cronjob-retry-backoff` | v1.2.0 #2 — Retry/backoff |
 | `feature/observability-metrics` | v1.2.0 #4 — Actuator/Micrometer/Prometheus |
 | `feature/health-probes` | v1.2.0 #5 — liveness/readiness |
-| `feature/executor-config` | v1.2.0 #6 — thread pool configurable |
+| `feature/executor-config` | v1.2.0 #6 — configurable thread pool |
 | `feature/testcontainers-ci` | v1.2.0 #7 — Testcontainers + CI |
-| `feature/cronjob-workflows` | v1.3.0 — dependencias entre jobs |
-| `feature/dashboard-analytics` | v1.3.0 — analítica de ejecuciones |
-| `feature/login-redesign` | v1.4.0 — rediseño visual login |
-| `feature/ui-refresh` | v1.4.0 — refresh general de UI |
+| `feature/cronjob-workflows` | v1.3.0 — job dependencies |
+| `feature/dashboard-analytics` | v1.3.0 — execution analytics |
+| `feature/login-redesign` | v1.4.0 — login visual redesign |
+| `feature/ui-refresh` | v1.4.0 — general UI refresh |
 | `feature/notification-batches` | v1.4.0 — batches |
-| `feature/webhook-hmac` | v1.4.0 — firma HMAC |
+| `feature/webhook-hmac` | v1.4.0 — HMAC signing |
 | `feature/docker-deployment` | v1.5.0 — Dockerfile + compose + CI publish |
