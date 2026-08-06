@@ -32,6 +32,15 @@ upcoming versions.
   boots against real MySQL via Testcontainers instead of requiring a
   reachable external DB — runs in any environment with Docker.
 
+### Fixed
+- `LazyInitializationException` on startup against a real database, when an
+  active `CronJob` has a `Project`: the next-execution gauge
+  (`CronJobScheduler.refreshNextExecutionGauge()`) read
+  `cronJob.getProject().getName()` after the Hibernate session that fetched
+  the job list had already closed. `CronJobsServiceImpl.getActiveCronJobs()`
+  now keeps the session open long enough to force-initialize the project.
+  Only surfaced with real data — the Testcontainers suite's DB starts empty.
+
 Note: Flyway was evaluated for schema versioning and dropped — staying on
 `hibernate.ddl-auto=update`. See [ROADMAP.md](ROADMAP.md) for v1.3.0+.
 

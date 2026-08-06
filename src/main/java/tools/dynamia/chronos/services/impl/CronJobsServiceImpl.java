@@ -17,6 +17,7 @@ import tools.dynamia.integration.sterotypes.Service;
 
 import java.net.http.HttpClient;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +48,23 @@ public class CronJobsServiceImpl extends AbstractService implements CronJobsServ
 
     @Override
     public List<CronJob> getActiveCronJobs() {
-        return crudService().find(CronJob.class, "active", true);
+        // Wrapped in a transaction (not just a plain find()) so the
+        // Hibernate session stays open long enough to force-initialize each
+        // job's project below. Callers read job.getProject().getName() for
+        // metrics/logging (CronJobScheduler's next-execution gauge) *after*
+        // this method returns — at app startup that runs outside any web
+        // request/OSIV, so without this the lazy proxy blows up with
+        // LazyInitializationException the moment it's touched.
+        List<CronJob> jobs = new ArrayList<>();
+        crudService().executeWithinTransaction(() -> {
+            jobs.addAll(crudService().find(CronJob.class, "active", true));
+            jobs.forEach(cronJob -> {
+                if (cronJob.getProject() != null) {
+                    cronJob.getProject().getName();
+                }
+            });
+        });
+        return jobs;
     }
 
     public List<CronJob> getFailingCronJobs() {

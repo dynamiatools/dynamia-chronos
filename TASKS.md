@@ -15,9 +15,32 @@ directly on `main`.
 ## v1.2.0 — Scalability and groundwork ✅ COMPLETE
 
 All branches merged into `integration/v1.2.0` (1→7, item 3 dropped by
-decision). Full suite green (48/48), including
+decision). Full suite green (49/49), including
 `DynamiaChronosApplicationTests` against real MySQL via Testcontainers.
 Pending: merge `integration/v1.2.0` into `main`.
+
+### Post-merge fix: `LazyInitializationException` on real DB startup
+Manual testing against a real MySQL instance surfaced a bug the
+Testcontainers suite couldn't catch (its DB starts empty, so
+`getActiveCronJobs()` had nothing to iterate): with a real active `CronJob`
+that has a `Project`, app startup crashed with
+`org.hibernate.LazyInitializationException: Could not initialize proxy
+[Project#1] - no session`.
+
+Root cause: `CronJobScheduler.refreshNextExecutionGauge()` (added in item 4,
+Observability) reads `cronJob.getProject().getName()` for the metric's tag,
+but `CronJobsServiceImpl.getActiveCronJobs()` only wrapped the `find()` query
+in a session — the lazy `Project` proxy was touched later, after that
+session had already closed. At app startup this runs outside any web
+request, so there's no Open-Session-In-View to paper over it.
+
+Fix: `getActiveCronJobs()` now wraps the query **and** a force-touch of
+`cronJob.getProject().getName()` in the same `crudService().executeWithinTransaction(...)`
+block, so the session stays open long enough. Added
+`DynamiaChronosApplicationTests#reschedulingActiveJobsWithAProjectDoesNotFailOnLazyLoading`,
+which seeds a real `Project` + active `CronJob` and calls
+`cronJobScheduler.reload()` — verified it reproduces the exact stack trace
+with the fix reverted, and passes with it applied.
 
 ### 1. Distributed locking (scheduler) — `feature/scheduler-distributed-lock`
 - [x] Added `shedlock-spring` + `shedlock-provider-jdbc-template` (7.7.0) dependency.
