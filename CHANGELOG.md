@@ -4,9 +4,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versionado siguiendo SemVer. Ver [ROADMAP.md](ROADMAP.md) para el plan completo
 de las próximas versiones.
 
-## [Unreleased]
-
-Trabajo de la v1.2.0 en progreso — ver [TASKS.md](TASKS.md) para el detalle.
+## [1.2.0] - 2026-08-05
 
 ### Added
 - Locking distribuido del scheduler (ShedLock) — `CronJobScheduler` ahora
@@ -36,10 +34,8 @@ Trabajo de la v1.2.0 en progreso — ver [TASKS.md](TASKS.md) para el detalle.
   bootea contra MySQL real en Testcontainers en vez de requerir una BD
   externa alcanzable — corre en cualquier entorno con Docker.
 
-Con esto, **v1.2.0 completo** — ver [ROADMAP.md](ROADMAP.md) para v1.3.0+.
-
 Nota: se evaluó Flyway para versionar el schema y se descartó — se sigue con
-`hibernate.ddl-auto=update`.
+`hibernate.ddl-auto=update`. Ver [ROADMAP.md](ROADMAP.md) para v1.3.0+.
 
 ## [1.1.0] - baseline
 

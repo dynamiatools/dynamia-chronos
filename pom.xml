@@ -10,7 +10,7 @@
     </parent>
     <groupId>tools.dynamia</groupId>
     <artifactId>dynamia-chronos</artifactId>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
     <name>dynamia-chronos</name>
     <description>Open source cron job scheduler builded using spring boot and dynamia.tools</description>
 
